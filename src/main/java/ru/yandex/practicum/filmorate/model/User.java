@@ -1,15 +1,23 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Slf4j
 public class User {
     private int id;
+
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    private Set<User> friends = new HashSet<>();
 
     @NotBlank(message = "Электронная почта не должна быть пустой!")
     @Email(message = "Некорректный формат электронной почты!")

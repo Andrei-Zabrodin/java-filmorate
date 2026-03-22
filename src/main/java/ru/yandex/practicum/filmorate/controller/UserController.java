@@ -1,64 +1,54 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@RequiredArgsConstructor
 public class UserController {
-    private final Map<Integer, User> users = new HashMap<>();
-    private int currentId = 0;
+    private final UserService userService;
 
     @GetMapping
     public Collection<User> getUsers() {
         log.debug("Возвращён список пользователей");
-        return users.values();
+        return userService.getUsers();
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> getFriends(@PathVariable int id) {
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
+        return userService.getCommonFriends(id, otherId);
     }
 
     @PostMapping
     public User postUser(@Valid @RequestBody User user) {
-        user.setId(++currentId);
-
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-            log.debug("Пользователю установили логин {} в качестве имени", user.getLogin());
-        }
-
-        users.put(user.getId(), user);
-        log.debug("Добавлен пользователь с id {}", user.getId());
-        return user;
+        return userService.addUser(user);
     }
 
-    @PutMapping()
+    @PutMapping
     public User updateUser(@Valid @RequestBody User newUser) {
-        log.debug("Начинаем исправление записи с id пользователя {}", newUser.getId());
-        if (newUser.getId() == 0) {
-            log.debug("В запросе не указан id пользователя");
-            throw new ValidateException("Необходимо указать id пользователя!");
-        }
+        return userService.updateUser(newUser);
+    }
 
-        if (users.containsKey(newUser.getId())) {
-            User oldUser = users.get(newUser.getId());
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable int id, @PathVariable int friendId) {
+        userService.addFriend(id, friendId);
+    }
 
-            Optional.ofNullable(newUser.getEmail()).ifPresent(oldUser::setEmail);
-            Optional.ofNullable(newUser.getLogin()).ifPresent(oldUser::setLogin);
-            Optional.ofNullable(newUser.getName()).ifPresent(oldUser::setName);
-            Optional.ofNullable(newUser.getBirthday()).ifPresent(oldUser::setBirthday);
-
-            log.debug("Пользователь с id {} обновлен", newUser.getId());
-            return oldUser;
-        }
-
-        log.debug("Не удалось найти пользователя с указанным id");
-        throw new ValidateException("Пользователь с id = " + newUser.getId() + " не найден");
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
+        userService.deleteFriend(id, friendId);
     }
 }
