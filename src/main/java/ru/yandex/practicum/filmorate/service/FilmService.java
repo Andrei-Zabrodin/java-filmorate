@@ -45,16 +45,14 @@ public class FilmService {
         Film film = filmStorage.getFilmById(filmId);
         User user = userStorage.getUserById(userId);
 
-        log.debug("Ставим лайк фильму с id {} от пользователя с id {}", filmId, userId);
-        film.getThoseWhoLiked().add(user);
+        film.addLike(user);
     }
 
     public void deleteLike(int filmId, int userId) {
         Film film = filmStorage.getFilmById(filmId);
         User user = userStorage.getUserById(userId);
 
-        log.debug("Удаляем фильму с id {} лайк от пользователя с id {}", filmId, userId);
-        film.getThoseWhoLiked().remove(user);
+        film.removeLike(user);
     }
 
     public Collection<Film> getPopularFilms(int count) {
@@ -64,6 +62,4 @@ public class FilmService {
                 .limit(count)
                 .toList();
     }
-
-
 }

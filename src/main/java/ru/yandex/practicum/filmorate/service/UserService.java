@@ -57,18 +57,16 @@ public class UserService {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
 
-        log.debug("Добавляем пользователя с id {} в друзья к пользователю {}", friendId, userId);
-        user.getFriends().add(friend);
-        friend.getFriends().add(user);
+        user.addFriend(friend);
+        friend.addFriend(user);
     }
 
     public void deleteFriend(int userId, int friendId) {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
 
-        log.debug("Удаляем пользователя с id {} из друзей пользователю {}", friendId, userId);
-        user.getFriends().remove(friend);
-        friend.getFriends().remove(user);
+        user.removeFriend(friend);
+        friend.removeFriend(user);
     }
 
     private void validateUser(User user) {

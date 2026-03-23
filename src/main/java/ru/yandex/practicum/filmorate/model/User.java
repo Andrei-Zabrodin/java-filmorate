@@ -31,4 +31,14 @@ public class User {
 
     @PastOrPresent(message = "Дата рождения должна быть не позже текущей даты!")
     private LocalDate birthday;
+
+    public void addFriend(User user) {
+        log.debug("Добавляем пользователя с id {} в друзья к пользователю {}", user.getId(), this.id);
+        friends.add(user);
+    }
+
+    public void removeFriend(User user) {
+        log.debug("Удаляем пользователя с id {} из друзей пользователю {}", user.getId(), this.id);
+        friends.remove(user);
+    }
 }

@@ -34,7 +34,18 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть больше 0!")
     private Integer duration;
 
-    public static int getLikesAmount(Film film) {
-        return film.getThoseWhoLiked().size();
+    @JsonIgnore
+    public int getLikesAmount() {
+        return this.getThoseWhoLiked().size();
+    }
+
+    public void addLike(User user) {
+        log.debug("Ставим лайк фильму с id {} от пользователя с id {}", this.id, user.getId());
+        thoseWhoLiked.add(user);
+    }
+
+    public void removeLike(User user) {
+        log.debug("Удаляем фильму с id {} лайк от пользователя с id {}", this.id, user.getId());
+        thoseWhoLiked.remove(user);
     }
 }
