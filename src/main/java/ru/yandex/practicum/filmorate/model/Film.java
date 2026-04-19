@@ -34,9 +34,6 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть больше 0!")
     private Integer duration;
 
-    private Set<Genre> genres = new HashSet<>();
-    private Rating mpa;
-
     @JsonIgnore
     public int getLikesAmount() {
         return this.getThoseWhoLiked().size();

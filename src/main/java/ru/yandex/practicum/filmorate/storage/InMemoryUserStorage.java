@@ -63,6 +63,7 @@ public class InMemoryUserStorage implements UserStorage {
        return users.remove(id);
     }
 
+    @Override
     public void checkUserId(int id) {
         if (!users.containsKey(id)) {
             log.debug("Не удалось найти пользователя с указанным id");

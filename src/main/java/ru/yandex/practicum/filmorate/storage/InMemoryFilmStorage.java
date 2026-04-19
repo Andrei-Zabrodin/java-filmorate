@@ -67,6 +67,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films.remove(id);
     }
 
+    @Override
     public void checkFilmId(int id) {
         if (!films.containsKey(id)) {
             log.debug("Не удалось найти фильм с указанным id");

@@ -1,25 +1,19 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.FriendsStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
-    private final FriendsStorage friendsStorage;
-
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendsStorage friendsStorage) {
-        this.userStorage = userStorage;
-        this.friendsStorage = friendsStorage;
-    }
 
     public Collection<User> getUsers() {
         return userStorage.getUsers();
@@ -27,12 +21,16 @@ public class UserService {
 
     public Collection<User> getFriends(int userId) {
         log.debug("Возвращаем список друзей пользователя с id {}", userId);
-        return friendsStorage.getFriends(userId);
+        return userStorage.getUserById(userId).getFriends();
     }
 
     public Collection<User> getCommonFriends(int userId, int otherId) {
+        Collection<User> userFriends = userStorage.getUserById(userId).getFriends();
+        Collection<User> otherUserFriends = userStorage.getUserById(otherId).getFriends();
+        userFriends.retainAll(otherUserFriends);
+
         log.debug("Возвращаем общих друзей пользователей с id {} и {}", userId, otherId);
-        return friendsStorage.getCommonFriends(userId, otherId);
+        return userFriends;
     }
 
     public User addUser(User user) {
@@ -56,13 +54,19 @@ public class UserService {
     }
 
     public void addFriend(int userId, int friendId) {
-        log.debug("Пользователю с id {} добавляем друга с id {}", userId, friendId);
-        friendsStorage.addFriend(userId, friendId);
+        User user = userStorage.getUserById(userId);
+        User friend = userStorage.getUserById(friendId);
+
+        user.addFriend(friend);
+        friend.addFriend(user);
     }
 
     public void deleteFriend(int userId, int friendId) {
-        log.debug("У пользователя с id {} убираем из друзей пользователя с id {}", userId, friendId);
-        friendsStorage.deleteFriend(userId, friendId);
+        User user = userStorage.getUserById(userId);
+        User friend = userStorage.getUserById(friendId);
+
+        user.removeFriend(friend);
+        friend.removeFriend(user);
     }
 
     private void validateUser(User user) {
