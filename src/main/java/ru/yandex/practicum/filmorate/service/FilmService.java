@@ -1,26 +1,39 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.Collection;
-import java.util.Comparator;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class FilmService {
+
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final LikeStorage likeStorage;
+    private final GenreStorage genreStorage;
+    private final RatingStorage ratingStorage;
+
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       LikeStorage likeStorage, GenreStorage genreStorage, RatingStorage ratingStorage) {
+        this.filmStorage = filmStorage;
+        this.likeStorage = likeStorage;
+        this.genreStorage = genreStorage;
+        this.ratingStorage = ratingStorage;
+    }
 
     public Collection<Film> getFilms() {
         return filmStorage.getFilms();
+    }
+
+    public Film getFilmById(int filmId) {
+        return filmStorage.getFilmById(filmId);
     }
 
     public Film addFilm(Film film) {
@@ -42,24 +55,31 @@ public class FilmService {
     }
 
     public void likeFilm(int filmId, int userId) {
-        Film film = filmStorage.getFilmById(filmId);
-        User user = userStorage.getUserById(userId);
-
-        film.addLike(user);
+        likeStorage.likeFilm(filmId, userId);
     }
 
     public void deleteLike(int filmId, int userId) {
-        Film film = filmStorage.getFilmById(filmId);
-        User user = userStorage.getUserById(userId);
-
-        film.removeLike(user);
+        likeStorage.deleteLike(filmId, userId);
     }
 
     public Collection<Film> getPopularFilms(int count) {
         log.debug("Начинам формировать список {} популярных фильмов", count);
-        return filmStorage.getFilms().stream()
-                .sorted(Comparator.comparing(Film::getLikesAmount).reversed())
-                .limit(count)
-                .toList();
+        return likeStorage.getPopularFilms(count);
+    }
+
+    public Collection<Genre> getGenres() {
+        return genreStorage.getGenres();
+    }
+
+    public Genre getGenreById(int genreId) {
+        return genreStorage.getGenreById(genreId);
+    }
+
+    public Collection<Rating> getRatings() {
+        return ratingStorage.getRatings();
+    }
+
+    public Rating getRatingById(int ratingId) {
+        return ratingStorage.getRatingById(ratingId);
     }
 }

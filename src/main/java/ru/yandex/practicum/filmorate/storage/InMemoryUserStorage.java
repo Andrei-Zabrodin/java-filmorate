@@ -57,13 +57,12 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User deleteUser(int id) {
-       checkUserId(id);
+        checkUserId(id);
 
         log.debug("Удаляем пользователя с id {}", id);
-       return users.remove(id);
+        return users.remove(id);
     }
 
-    @Override
     public void checkUserId(int id) {
         if (!users.containsKey(id)) {
             log.debug("Не удалось найти пользователя с указанным id");
