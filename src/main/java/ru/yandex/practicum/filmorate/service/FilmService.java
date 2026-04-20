@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.Collection;
@@ -17,15 +15,10 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final LikeStorage likeStorage;
-    private final GenreStorage genreStorage;
-    private final RatingStorage ratingStorage;
 
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                       LikeStorage likeStorage, GenreStorage genreStorage, RatingStorage ratingStorage) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, LikeStorage likeStorage) {
         this.filmStorage = filmStorage;
-        this.likeStorage = likeStorage;
-        this.genreStorage = genreStorage;
-        this.ratingStorage = ratingStorage;
+        this.likeStorage = likeStorage;;
     }
 
     public Collection<Film> getFilms() {
@@ -65,21 +58,5 @@ public class FilmService {
     public Collection<Film> getPopularFilms(int count) {
         log.debug("Начинам формировать список {} популярных фильмов", count);
         return likeStorage.getPopularFilms(count);
-    }
-
-    public Collection<Genre> getGenres() {
-        return genreStorage.getGenres();
-    }
-
-    public Genre getGenreById(int genreId) {
-        return genreStorage.getGenreById(genreId);
-    }
-
-    public Collection<Rating> getRatings() {
-        return ratingStorage.getRatings();
-    }
-
-    public Rating getRatingById(int ratingId) {
-        return ratingStorage.getRatingById(ratingId);
     }
 }

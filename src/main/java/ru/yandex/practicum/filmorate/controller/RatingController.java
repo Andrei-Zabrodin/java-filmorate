@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Rating;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.RatingService;
 
 import java.util.Collection;
 
@@ -16,15 +16,15 @@ import java.util.Collection;
 @Slf4j
 @RequiredArgsConstructor
 public class RatingController {
-    private final FilmService filmService;
+    private final RatingService ratingService;
 
     @GetMapping
     public Collection<Rating> getRatings() {
-        return filmService.getRatings();
+        return ratingService.getRatings();
     }
 
     @GetMapping("/{id}")
     public Rating getRatingById(@PathVariable int id) {
-        return filmService.getRatingById(id);
+        return ratingService.getRatingById(id);
     }
 }
