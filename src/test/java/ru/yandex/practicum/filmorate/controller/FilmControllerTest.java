@@ -2,15 +2,19 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(FilmController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@Sql(scripts = "classpath:clean.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class FilmControllerTest {
     private static final String PATH = "/films";
 
@@ -23,7 +27,8 @@ public class FilmControllerTest {
                 "\"name\":\"Расёмон\"," +
                 "\"description\":\"Фильм Акиры Куросавы\"," +
                 "\"releaseDate\":\"1950-04-28\"," +
-                "\"duration\":88" +
+                "\"duration\":88," +
+                "\"mpa\":{\"id\":2}" +
                 "}";
 
         String expectedResponse = "{" +
@@ -31,12 +36,16 @@ public class FilmControllerTest {
                 "\"name\":\"Расёмон\"," +
                 "\"description\":\"Фильм Акиры Куросавы\"," +
                 "\"releaseDate\":\"1950-04-28\"," +
-                "\"duration\":88" +
+                "\"duration\":88," +
+                "\"genres\":[]," +
+                "\"mpa\":{" +
+                    "\"id\":2," +
+                    "\"name\":null}" +
                 "}";
 
         String response = mvc.perform(post(PATH)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
