@@ -14,11 +14,9 @@ import java.util.Collection;
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    private final LikeStorage likeStorage;
 
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, LikeStorage likeStorage) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage) {
         this.filmStorage = filmStorage;
-        this.likeStorage = likeStorage;;
     }
 
     public Collection<Film> getFilms() {
@@ -47,16 +45,4 @@ public class FilmService {
         return filmStorage.deleteFilm(id);
     }
 
-    public void likeFilm(int filmId, int userId) {
-        likeStorage.likeFilm(filmId, userId);
-    }
-
-    public void deleteLike(int filmId, int userId) {
-        likeStorage.deleteLike(filmId, userId);
-    }
-
-    public Collection<Film> getPopularFilms(int count) {
-        log.debug("Начинам формировать список {} популярных фильмов", count);
-        return likeStorage.getPopularFilms(count);
-    }
 }
