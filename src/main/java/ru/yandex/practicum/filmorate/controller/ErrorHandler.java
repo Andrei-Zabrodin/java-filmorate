@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -34,6 +35,13 @@ public class ErrorHandler {
         return new ErrorResponse("Ошибка валидации", e.getMessage());
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handle(MethodArgumentTypeMismatchException e) {
+        return new ErrorResponse("Ошибка валидации",
+                "Допускается сортировка только по year или likes");
+    }
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handle(NotFoundException e) {
@@ -52,6 +60,6 @@ public class ErrorHandler {
     public ErrorResponse handleOthers(Throwable e) {
         log.debug(e.getMessage());
         log.debug(e.getClass().toString());
-        return new ErrorResponse("Ошибка","Произошла непредвиденная ошибка.");
+        return new ErrorResponse("Ошибка", "Произошла непредвиденная ошибка.");
     }
 }
