@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmSortBy;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
@@ -45,4 +46,7 @@ public class FilmService {
         return filmStorage.deleteFilm(id);
     }
 
+    public Collection<Film> getFilmsByDirector(int directorId, FilmSortBy sortBy) {
+        return filmStorage.getFilmsByDirector(directorId, sortBy);
+    }
 }

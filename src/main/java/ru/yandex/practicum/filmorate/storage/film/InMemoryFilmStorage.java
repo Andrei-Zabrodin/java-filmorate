@@ -4,12 +4,17 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmSortBy;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -51,8 +56,14 @@ public class InMemoryFilmStorage implements FilmStorage {
         Optional.ofNullable(newFilm.getName()).ifPresent(oldFilm::setName);
         Optional.ofNullable(newFilm.getDescription()).ifPresent(oldFilm::setDescription);
         Optional.ofNullable(newFilm.getReleaseDate()).ifPresent(oldFilm::setReleaseDate);
-        if (newFilm.getDuration() != 0) {
+        if (newFilm.getDuration() != null) {
             oldFilm.setDuration(newFilm.getDuration());
+        }
+        if (newFilm.getGenres() != null && !newFilm.getGenres().isEmpty()) {
+            oldFilm.setGenres(newFilm.getGenres());
+        }
+        if (newFilm.getDirector() != null && !newFilm.getDirector().isEmpty()) {
+            oldFilm.setDirector(newFilm.getDirector());
         }
 
         log.debug("Фильм с id {} обновлен", newFilm.getId());
@@ -72,5 +83,22 @@ public class InMemoryFilmStorage implements FilmStorage {
             log.debug("Не удалось найти фильм с указанным id");
             throw new NotFoundException("Фильм с id " + id + " не найден");
         }
+    }
+
+    @Override
+    public Collection<Film> getFilmsByDirector(int directorId, FilmSortBy sortBy) {
+        List<Film> result = films.values().stream()
+                .filter(film -> film.getDirector() != null
+                        && film.getDirector().stream().map(Director::getId).anyMatch(id -> id == directorId))
+                .sorted(getComparator(sortBy))
+                .collect(Collectors.toList());
+        return result;
+    }
+
+    private Comparator<Film> getComparator(FilmSortBy sortBy) {
+        if (FilmSortBy.LIKES.equals(sortBy)) {
+            return Comparator.comparingInt(Film::getLikesAmount).reversed();
+        }
+        return Comparator.comparing(Film::getReleaseDate);
     }
 }

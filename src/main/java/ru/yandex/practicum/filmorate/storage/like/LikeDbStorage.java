@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.DbStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 
 import java.util.Collection;
 
@@ -20,8 +21,11 @@ public class LikeDbStorage extends DbStorage<Film> implements LikeStorage {
             "JOIN ratings r USING (rating_id) " +
             "ORDER BY l.count DESC";
 
-    public LikeDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
+    private final FilmDbStorage filmDbStorage;
+
+    public LikeDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, FilmDbStorage filmDbStorage) {
         super(jdbc, mapper);
+        this.filmDbStorage = filmDbStorage;
     }
 
     public void likeFilm(int filmId, int userId) {
@@ -33,6 +37,7 @@ public class LikeDbStorage extends DbStorage<Film> implements LikeStorage {
     }
 
     public Collection<Film> getPopularFilms(int count) {
-        return findMany(GET_POPULAR_FILMS_QUERY, count);
+        Collection<Film> films = findMany(GET_POPULAR_FILMS_QUERY, count);
+        return this.filmDbStorage.enrichFilms(films);
     }
 }
