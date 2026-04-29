@@ -62,8 +62,8 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (newFilm.getGenres() != null && !newFilm.getGenres().isEmpty()) {
             oldFilm.setGenres(newFilm.getGenres());
         }
-        if (newFilm.getDirector() != null && !newFilm.getDirector().isEmpty()) {
-            oldFilm.setDirector(newFilm.getDirector());
+        if (newFilm.getDirectors() != null && !newFilm.getDirectors().isEmpty()) {
+            oldFilm.setDirectors(newFilm.getDirectors());
         }
 
         log.debug("Фильм с id {} обновлен", newFilm.getId());
@@ -88,8 +88,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Collection<Film> getFilmsByDirector(int directorId, FilmSortBy sortBy) {
         List<Film> result = films.values().stream()
-                .filter(film -> film.getDirector() != null
-                        && film.getDirector().stream().map(Director::getId).anyMatch(id -> id == directorId))
+                .filter(film -> film.getDirectors() != null
+                        && film.getDirectors().stream().map(Director::getId).anyMatch(id -> id == directorId))
                 .sorted(getComparator(sortBy))
                 .collect(Collectors.toList());
         return result;

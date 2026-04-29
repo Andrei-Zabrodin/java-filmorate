@@ -38,7 +38,7 @@ public class FilmControllerTest {
                 "\"releaseDate\":\"1950-04-28\"," +
                 "\"duration\":88," +
                 "\"genres\":[]," +
-                "\"director\":[]," +
+                "\"directors\":[]," +
                 "\"mpa\":{" +
                     "\"id\":2}" +
                 "}";

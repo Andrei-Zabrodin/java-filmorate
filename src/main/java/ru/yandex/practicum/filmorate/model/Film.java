@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,8 +38,7 @@ public class Film {
 
     private Set<Genre> genres = new HashSet<>();
 
-    @JsonProperty("directors")
-    private Set<Director> director = new HashSet<>();
+    private Set<Director> directors = new HashSet<>();
 
     private Rating mpa;
 

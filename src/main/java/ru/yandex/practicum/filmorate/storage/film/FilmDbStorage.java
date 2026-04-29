@@ -78,7 +78,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
         Set<Integer> genreIds = Optional.ofNullable(film.getGenres()).orElseGet(HashSet::new).stream()
                 .map(Genre::getId)
                 .collect(Collectors.toSet());
-        Set<Integer> directorIds = Optional.ofNullable(film.getDirector()).orElseGet(HashSet::new).stream()
+        Set<Integer> directorIds = Optional.ofNullable(film.getDirectors()).orElseGet(HashSet::new).stream()
                 .map(Director::getId)
                 .collect(Collectors.toSet());
         int mpa = film.getMpa().getId();
@@ -146,8 +146,8 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
         Film film = getFilmById(newFilm.getId());
 
-        if (newFilm.getDirector() != null && !newFilm.getDirector().isEmpty()) {
-            Set<Integer> directorIds = newFilm.getDirector().stream()
+        if (newFilm.getDirectors() != null && !newFilm.getDirectors().isEmpty()) {
+            Set<Integer> directorIds = newFilm.getDirectors().stream()
                     .map(Director::getId)
                     .collect(Collectors.toSet());
             directorDbStorage.addFilmDirectors(newFilm.getId(), directorIds);
@@ -197,13 +197,13 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
         return films.stream()
                 .peek(film -> film.setGenres(genresMap.getOrDefault(film.getId(), new HashSet<>())))
-                .peek(film -> film.setDirector(directorsMap.getOrDefault(film.getId(), new HashSet<>())))
+                .peek(film -> film.setDirectors(directorsMap.getOrDefault(film.getId(), new HashSet<>())))
                 .toList();
     }
 
     public Film enrichFilm(Film film) {
         film.setGenres(genreDbStorage.getGenresForOneFilm(film.getId()));
-        film.setDirector(directorDbStorage.getDirectorsForOneFilm(film.getId()));
+        film.setDirectors(directorDbStorage.getDirectorsForOneFilm(film.getId()));
         return film;
     }
 }
