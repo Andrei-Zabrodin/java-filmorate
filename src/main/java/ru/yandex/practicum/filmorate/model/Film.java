@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,6 +15,7 @@ import java.util.Set;
 
 @Data
 @Slf4j
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Film {
 
     private static final int MAX_DESCRIPTION = 200;
@@ -35,6 +38,10 @@ public class Film {
     private Integer duration;
 
     private Set<Genre> genres = new HashSet<>();
+
+    @JsonProperty("directors")
+    private Set<Director> director = new HashSet<>();
+
     private Rating mpa;
 
     @JsonIgnore
