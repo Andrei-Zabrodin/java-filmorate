@@ -65,6 +65,7 @@ public class ReviewService {
     }
 
     public void likeReview(int reviewId, int userId) {
+        userStorage.getUserById(userId);
         validateIds(reviewId, userId);
         reviewStorage.addReaction(reviewId, userId, true);
         log.debug("Пользователь {} лайкнул отзыв {}", userId, reviewId);
@@ -72,12 +73,14 @@ public class ReviewService {
 
     public void dislikeReview(int reviewId, int userId) {
         validateIds(reviewId, userId);
+        userStorage.getUserById(userId);
         reviewStorage.addReaction(reviewId, userId, false);
         log.debug("Пользователь {} дизлайкнул отзыв {}", userId, reviewId);
     }
 
     public void removeReaction(int reviewId, int userId) {
         validateIds(reviewId, userId);
+        userStorage.getUserById(userId);
         reviewStorage.removeReaction(reviewId, userId);
         log.debug("Пользователь {} удалил реакцию с отзыва {}", userId, reviewId);
     }

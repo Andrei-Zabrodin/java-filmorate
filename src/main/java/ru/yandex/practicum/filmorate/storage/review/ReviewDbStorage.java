@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public class ReviewDbStorage extends DbStorage<Review> implements ReviewStorage {
     private static final String ADD_REVIEW_QUERY =
-            "INSERT INTO reviews(content, is_positive, user_id, film_id, useful) VALUES (?, ?, ?, ?, ?)";
+            "INSERT INTO reviews(content, is_positive, user_id, film_id) VALUES (?, ?, ?, ?)";
 
     private static final String UPDATE_REVIEW_QUERY =
             "UPDATE reviews SET content = ?, is_positive = ? WHERE review_id = ?";
@@ -50,8 +50,7 @@ public class ReviewDbStorage extends DbStorage<Review> implements ReviewStorage 
                 review.getContent(),
                 review.getIsPositive(),
                 review.getUserId(),
-                review.getFilmId(),
-                0); // новый отзыв начинается с useful = 0
+                review.getFilmId()); // новый отзыв начинается с useful = 0
         if (id.isPresent()) {
             review.setReviewId(id.get());
             log.debug("Добавлен отзыв с id {}", review.getReviewId());
@@ -90,7 +89,7 @@ public class ReviewDbStorage extends DbStorage<Review> implements ReviewStorage 
     @Override
     public Collection<Review> getReviewsByFilmId(int filmId, int count) {
         log.debug("Получаем до {} отзывов для фильма {}", count, filmId);
-        if (filmId <= 0) {
+        if (filmId == 0) {
             // Если filmId не указан или 0 — возвращаем все отзывы
             return findMany(GET_ALL_REVIEWS_QUERY, count);
         }
