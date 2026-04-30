@@ -18,6 +18,6 @@ public interface ReviewStorage {
     void addReaction(int reviewId, int userId, boolean isLike);
 
     void removeReaction(int reviewId, int userId);
-    
+
     void updateUsefulRating(int reviewId);
 }
