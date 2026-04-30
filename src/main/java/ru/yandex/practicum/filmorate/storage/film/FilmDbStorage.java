@@ -11,8 +11,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.DbStorage;
-import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
-import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.rating.RatingStorage;
 
 import java.util.*;
@@ -41,24 +41,24 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
     private static final String UPDATE_FILM_QUERY_START = "UPDATE films SET ";
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
 
-    private final GenreDbStorage genreDbStorage;
-    private final DirectorDbStorage directorDbStorage;
+    private final GenreStorage genreStorage;
+    private final DirectorStorage directorStorage;
     private final RatingStorage ratingStorage;
+    private final FilmEnricher filmEnricher;
 
-    public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, GenreDbStorage genreStorage,
-                         DirectorDbStorage directorDbStorage,
-                         RatingStorage ratingStorage) {
+    public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, GenreStorage genreStorage,
+                         DirectorStorage directorStorage, RatingStorage ratingStorage, FilmEnricher filmEnricher) {
         super(jdbc, mapper);
-        this.genreDbStorage = genreStorage;
-        this.directorDbStorage = directorDbStorage;
+        this.genreStorage = genreStorage;
+        this.directorStorage = directorStorage;
         this.ratingStorage = ratingStorage;
+        this.filmEnricher = filmEnricher;
     }
 
     @Override
     public Collection<Film> getFilms() {
         log.debug("Возвращаем список фильмов");
-        Collection<Film> films = findMany(GET_ALL_FILMS_QUERY);
-        return enrichFilms(films);
+        return filmEnricher.enrichFilms(findMany(GET_ALL_FILMS_QUERY));
     }
 
     @Override
@@ -66,7 +66,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
         Optional<Film> filmOpt = findOne(GET_FILM_BY_ID_QUERY, id);
         if (filmOpt.isPresent()) {
             log.debug("Нашли фильм с id {}", id);
-            return enrichFilm(filmOpt.get());
+            return filmEnricher.enrichFilm(filmOpt.get());
         } else {
             log.debug("Не удалось найти фильм с указанным id");
             throw new NotFoundException("Фильм с id " + id + " не найден");
@@ -93,8 +93,8 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
         if (id.isPresent()) {
             film.setId(id.get());
-            genreDbStorage.addFilmGenres(id.get(), genreIds);
-            directorDbStorage.addFilmDirectors(id.get(), directorIds);
+            genreStorage.addFilmGenres(id.get(), genreIds);
+            directorStorage.addFilmDirectors(id.get(), directorIds);
 
             log.debug("Добавлен фильм с id {}", film.getId());
             return film;
@@ -150,7 +150,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             Set<Integer> directorIds = newFilm.getDirectors().stream()
                     .map(Director::getId)
                     .collect(Collectors.toSet());
-            directorDbStorage.addFilmDirectors(newFilm.getId(), directorIds);
+            directorStorage.addFilmDirectors(newFilm.getId(), directorIds);
             film = getFilmById(newFilm.getId());
         }
 
@@ -175,35 +175,12 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> getFilmsByDirector(int directorId, FilmSortBy sortBy) {
-        directorDbStorage.getDirectorById(directorId);
+        directorStorage.getDirectorById(directorId);
 
         Collection<Film> films = FilmSortBy.LIKES.equals(sortBy)
                 ? findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY, directorId)
                 : findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY, directorId);
 
-        return enrichFilms(films);
-    }
-
-    public Collection<Film> enrichFilms(Collection<Film> films) {
-        if (films.isEmpty()) {
-            return films;
-        }
-
-        List<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
-        log.debug("Получили список id фильмов: {}", filmIds);
-        Map<Integer, Set<Genre>> genresMap = genreDbStorage.getGenresForAllFilms(filmIds);
-        Map<Integer, Set<Director>> directorsMap = directorDbStorage.getDirectorsForAllFilms(filmIds);
-        log.debug("Получили таблицы связей фильмов с жанрами и режиссёрами");
-
-        return films.stream()
-                .peek(film -> film.setGenres(genresMap.getOrDefault(film.getId(), new HashSet<>())))
-                .peek(film -> film.setDirectors(directorsMap.getOrDefault(film.getId(), new HashSet<>())))
-                .toList();
-    }
-
-    public Film enrichFilm(Film film) {
-        film.setGenres(genreDbStorage.getGenresForOneFilm(film.getId()));
-        film.setDirectors(directorDbStorage.getDirectorsForOneFilm(film.getId()));
-        return film;
+        return filmEnricher.enrichFilms(films);
     }
 }

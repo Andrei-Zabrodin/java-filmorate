@@ -2,8 +2,7 @@ package ru.yandex.practicum.filmorate.storage.director;
 
 import ru.yandex.practicum.filmorate.model.Director;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 
 public interface DirectorStorage {
     Collection<Director> getDirectors();
@@ -15,4 +14,10 @@ public interface DirectorStorage {
     void updateDirector(Director director);
 
     void deleteDirector(int id);
+
+    Set<Director> getDirectorsForOneFilm(int filmId);
+
+    Map<Integer, Set<Director>> getDirectorsForAllFilms(List<Integer> filmIds);
+
+    void addFilmDirectors(int filmId, Set<Integer> directorIds);
 }
