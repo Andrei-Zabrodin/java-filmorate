@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
 
@@ -37,6 +36,17 @@ public class InMemoryFilmStorage implements FilmStorage {
 
         log.debug("Нашли фильм с id {}", id);
         return films.get(id);
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(int userId, int friendId) {
+        log.debug("Возвращаем список общих фильмов пользователей с id {} и {}", userId, friendId);
+        List<Film> result = films.values().stream()
+                .filter(film -> film.getThoseWhoLiked().stream()
+                        .anyMatch(user -> user.getId() == userId || user.getId() == friendId))
+                .sorted(getComparator(FilmSortBy.LIKES))
+                .collect(Collectors.toList());
+        return result;
     }
 
     @Override
@@ -89,7 +99,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Collection<Film> getFilmsByDirector(int directorId, FilmSortBy sortBy) {
         List<Film> result = films.values().stream()
                 .filter(film -> film.getDirectors() != null
-                        && film.getDirectors().stream().map(Director::getId).anyMatch(id -> id == directorId))
+                        && film.getDirectors().stream().anyMatch(director -> director.getId() == directorId))
                 .sorted(getComparator(sortBy))
                 .collect(Collectors.toList());
         return result;

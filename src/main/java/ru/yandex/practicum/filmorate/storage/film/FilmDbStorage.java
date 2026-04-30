@@ -36,6 +36,12 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             "LEFT JOIN (SELECT film_id, COUNT(user_id) AS count FROM likes GROUP BY film_id) l USING (film_id) " +
             " WHERE fd.director_id = ? " +
             " ORDER BY count DESC, f.release_date";
+    private static final String GET_COMMON_FILMS_QUERY = "SELECT f.*, r.name AS rating_name FROM films f " +
+            "JOIN (SELECT film_id FROM likes WHERE user_id IN (?, ?) " +
+            "GROUP BY film_id HAVING COUNT(user_id) > 1) common_films USING(film_id) " +
+            "JOIN (SELECT film_id, count(user_id) AS like_count FROM likes GROUP BY film_id) l USING(film_id)" +
+            "JOIN ratings r USING (rating_id)" +
+            "ORDER BY l.like_count DESC";
     private static final String ADD_FILM_QUERY = "INSERT INTO films(name, description, release_date, duration," +
             " rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_FILM_QUERY_START = "UPDATE films SET ";
@@ -71,6 +77,12 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             log.debug("Не удалось найти фильм с указанным id");
             throw new NotFoundException("Фильм с id " + id + " не найден");
         }
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(int userId, int friendId) {
+        log.debug("Возвращаем список общих фильмов пользователей с id {} и {}", userId, friendId);
+        return filmEnricher.enrichFilms(findMany(GET_COMMON_FILMS_QUERY, userId, friendId));
     }
 
     @Override

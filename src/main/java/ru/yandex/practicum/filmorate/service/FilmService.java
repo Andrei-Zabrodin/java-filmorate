@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
@@ -26,6 +27,10 @@ public class FilmService {
 
     public Film getFilmById(int filmId) {
         return filmStorage.getFilmById(filmId);
+    }
+
+    public Collection<Film> getCommonFilms(int userId, int friendId) {
+        return filmStorage.getCommonFilms(userId, friendId);
     }
 
     public Film addFilm(Film film) {
