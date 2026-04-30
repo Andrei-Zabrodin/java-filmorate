@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
@@ -53,7 +54,7 @@ public class ReviewService {
         return reviewStorage.getReviewById(reviewId)
                 .orElseThrow(() -> {
                     log.debug("Отзыв с id {} не найден", reviewId);
-                    return new ValidateException("Отзыв не найден");
+                    return new NotFoundException("Отзыв с id " + reviewId + " не найден");
                 });
     }
 

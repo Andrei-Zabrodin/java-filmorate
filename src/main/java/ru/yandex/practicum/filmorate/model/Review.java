@@ -24,11 +24,9 @@ public class Review {
     private Boolean isPositive; // true = положительный, false = отрицательный
 
     @NotNull(message = "ID пользователя должен быть указан!")
-    @Positive(message = "ID пользователя должен быть положительным!")
     private Integer userId;
 
     @NotNull(message = "ID фильма должен быть указан!")
-    @Positive(message = "ID фильма должен быть положительным!")
     private Integer filmId;
 
     @JsonIgnore
