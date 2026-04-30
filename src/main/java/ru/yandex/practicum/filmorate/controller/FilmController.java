@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -26,8 +27,13 @@ public class FilmController {
 
     @GetMapping("/director/{directorId}")
     public Collection<Film> getFilmsByDirector(@PathVariable int directorId,
-                                               @RequestParam FilmSortBy sortBy) {
-        return filmService.getFilmsByDirector(directorId, sortBy);
+                                               @RequestParam String sortBy) {
+        try {
+            FilmSortBy sortByEnum = FilmSortBy.from(sortBy);
+            return filmService.getFilmsByDirector(directorId, sortByEnum);
+        } catch (IllegalArgumentException e) {
+            throw new ValidateException(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")

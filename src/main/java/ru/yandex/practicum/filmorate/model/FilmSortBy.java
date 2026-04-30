@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
+import ru.yandex.practicum.filmorate.exception.ValidateException;
+
 public enum FilmSortBy {
     year("year"),
     LIKES("likes");
@@ -17,7 +19,7 @@ public enum FilmSortBy {
             }
         }
 
-        throw new IllegalArgumentException(
+        throw new ValidateException(
                 "Параметр sortBy может принимать только: year или likes"
         );
     }
