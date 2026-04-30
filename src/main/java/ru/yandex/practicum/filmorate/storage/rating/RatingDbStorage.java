@@ -24,7 +24,7 @@ public class RatingDbStorage extends DbStorage<Rating> implements RatingStorage 
     // Добавлена сортировка
     @Override
     public Collection<Rating> getRatings() {
-        return findMany(GET_RATINGS_QUERY + " ORDER BY rating_id");
+        return findMany(GET_RATINGS_QUERY);
     }
 
     @Override
