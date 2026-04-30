@@ -14,7 +14,7 @@ import java.util.Optional;
 @Repository
 @Slf4j
 public class RatingDbStorage extends DbStorage<Rating> implements RatingStorage {
-    private static final String GET_RATINGS_QUERY = "SELECT * FROM ratings";
+    private static final String GET_RATINGS_QUERY = "SELECT * FROM ratings ORDER BY rating_id";
     private static final String GET_RATING_BY_ID_QUERY = "SELECT * FROM ratings WHERE rating_id = ?";
 
     public RatingDbStorage(JdbcTemplate jdbc, RowMapper<Rating> mapper) {

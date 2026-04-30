@@ -52,6 +52,6 @@ public class ErrorHandler {
     public ErrorResponse handleOthers(Throwable e) {
         log.debug(e.getMessage());
         log.debug(e.getClass().toString());
-        return new ErrorResponse("Ошибка","Произошла непредвиденная ошибка.");
+        return new ErrorResponse("Ошибка", "Произошла непредвиденная ошибка.");
     }
 }
