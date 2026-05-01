@@ -46,15 +46,6 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             "SELECT f.*, r.name as rating_name FROM films f " +
             "JOIN ratings r USING (rating_id) " +
             "WHERE film_id IN (SELECT film_id FROM recommended_film_ids)";
-
-    /*private static final String GET_RECOMMENDATION_BY_USER_ID_QUERY = "WITH most_similar_user AS " +
-            "(SELECT l2.user_id FROM likes l1 JOIN likes l2 USING(film_id) WHERE l1.user_id = ? AND l2.user_id != ? " +
-            "GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1), " +
-            "recommended_film_ids AS (SELECT film_id FROM likes WHERE user_id = (SELECT user_id FROM most_similar_user) " +
-            "EXCEPT SELECT film_id FROM likes WHERE user_id = ? " +
-            "SELECT * FROM films WHERE film_id IN (SELECT film_id FROM recommended_film_ids)";
-            */
-
     private static final String ADD_FILM_QUERY = "INSERT INTO films(name, description, release_date, duration," +
             " rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_FILM_QUERY_START = "UPDATE films SET ";
