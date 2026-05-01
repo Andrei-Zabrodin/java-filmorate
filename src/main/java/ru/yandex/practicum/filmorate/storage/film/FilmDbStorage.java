@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -14,6 +15,7 @@ import ru.yandex.practicum.filmorate.storage.DbStorage;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.rating.RatingStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,19 +38,39 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             "LEFT JOIN (SELECT film_id, COUNT(user_id) AS count FROM likes GROUP BY film_id) l USING (film_id) " +
             " WHERE fd.director_id = ? " +
             " ORDER BY count DESC, f.release_date";
+    private static final String GET_RECOMMENDATION_BY_USER_ID_QUERY = "WITH most_similar_user AS " +
+            "(SELECT l2.user_id FROM likes l1 JOIN likes l2 USING(film_id) WHERE l1.user_id = ? AND l2.user_id != ? " +
+            "GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1), " +
+            "recommended_film_ids AS (SELECT film_id FROM likes WHERE user_id = (SELECT user_id FROM most_similar_user) " +
+            "EXCEPT SELECT film_id FROM likes WHERE user_id = ?) " +
+            "SELECT f.*, r.name as rating_name FROM films f " +
+            "JOIN ratings r USING (rating_id) " +
+            "WHERE film_id IN (SELECT film_id FROM recommended_film_ids)";
+
+    /*private static final String GET_RECOMMENDATION_BY_USER_ID_QUERY = "WITH most_similar_user AS " +
+            "(SELECT l2.user_id FROM likes l1 JOIN likes l2 USING(film_id) WHERE l1.user_id = ? AND l2.user_id != ? " +
+            "GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1), " +
+            "recommended_film_ids AS (SELECT film_id FROM likes WHERE user_id = (SELECT user_id FROM most_similar_user) " +
+            "EXCEPT SELECT film_id FROM likes WHERE user_id = ? " +
+            "SELECT * FROM films WHERE film_id IN (SELECT film_id FROM recommended_film_ids)";
+            */
+
     private static final String ADD_FILM_QUERY = "INSERT INTO films(name, description, release_date, duration," +
             " rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_FILM_QUERY_START = "UPDATE films SET ";
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
 
+    private final UserStorage userStorage;
     private final GenreStorage genreStorage;
     private final DirectorStorage directorStorage;
     private final RatingStorage ratingStorage;
     private final FilmEnricher filmEnricher;
 
-    public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, GenreStorage genreStorage,
+    public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, @Qualifier("userDbStorage") UserStorage userStorage,
+                         GenreStorage genreStorage,
                          DirectorStorage directorStorage, RatingStorage ratingStorage, FilmEnricher filmEnricher) {
         super(jdbc, mapper);
+        this.userStorage = userStorage;
         this.genreStorage = genreStorage;
         this.directorStorage = directorStorage;
         this.ratingStorage = ratingStorage;
@@ -71,6 +93,14 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             log.debug("Не удалось найти фильм с указанным id");
             throw new NotFoundException("Фильм с id " + id + " не найден");
         }
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(int userId) {
+        //Проверяем наличие пользователя
+        userStorage.getUserById(userId);
+
+        return filmEnricher.enrichFilms(findMany(GET_RECOMMENDATION_BY_USER_ID_QUERY, userId, userId, userId));
     }
 
     @Override
