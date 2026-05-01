@@ -25,7 +25,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Integer, Film> films = new HashMap<>();
     private int currentId = 0;
 
-    public InMemoryFilmStorage(@Qualifier("InMemoryUserStorage") UserStorage userStorage) {
+    public InMemoryFilmStorage(@Qualifier("inMemoryUserStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 

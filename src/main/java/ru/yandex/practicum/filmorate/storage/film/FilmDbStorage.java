@@ -52,7 +52,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
     private final RatingStorage ratingStorage;
     private final FilmEnricher filmEnricher;
 
-    public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, @Qualifier("UserDbStorage") UserStorage userStorage,
+    public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, @Qualifier("userDbStorage") UserStorage userStorage,
                          GenreStorage genreStorage, DirectorStorage directorStorage, RatingStorage ratingStorage,
                          FilmEnricher filmEnricher) {
         super(jdbc, mapper);
