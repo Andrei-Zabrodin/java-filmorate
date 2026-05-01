@@ -55,7 +55,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
 
         return films.values().stream()
-                .filter(film ->recommendedFilmsIds.contains(film.getId()))
+                .filter(film -> recommendedFilmsIds.contains(film.getId()))
                 .collect(Collectors.toList());
     }
 
