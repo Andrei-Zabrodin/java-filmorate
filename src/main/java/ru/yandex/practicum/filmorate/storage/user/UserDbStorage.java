@@ -66,6 +66,8 @@ public class UserDbStorage extends DbStorage<User> implements UserStorage {
 
     @Override
     public User updateUser(User newUser) {
+        checkUserExistence(newUser.getId());
+
         StringBuilder query = new StringBuilder(UPDATE_USER_QUERY_START);
         List<Object> params = new ArrayList<>();
 
@@ -89,12 +91,14 @@ public class UserDbStorage extends DbStorage<User> implements UserStorage {
             params.add(newUser.getBirthday());
         }
 
-        query.setLength(query.length() - 2); //Убираем пробел и запятую с конца
-        query.append(" WHERE user_id = ?");
-        params.add(newUser.getId());
+        if (!params.isEmpty()) {
+            query.setLength(query.length() - 2); //Убираем пробел и запятую с конца
+            query.append(" WHERE user_id = ?");
+            params.add(newUser.getId());
 
-        log.debug("Итоговые параметры для обновления: {}", params);
-        update(query.toString(), params.toArray());
+            log.debug("Итоговые параметры для обновления: {}", params);
+            update(query.toString(), params.toArray());
+        }
 
         User user = getUserById(newUser.getId());
         log.debug("Пользователь с id {} обновлен", newUser.getId());
@@ -108,5 +112,10 @@ public class UserDbStorage extends DbStorage<User> implements UserStorage {
         delete(DELETE_USER_QUERY, id);
 
         return user;
+    }
+
+    @Override
+    public void checkUserExistence(int id) {
+        getUserById(id);
     }
 }

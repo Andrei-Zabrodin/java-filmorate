@@ -2,10 +2,12 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,8 +21,13 @@ import java.util.stream.Collectors;
 @Component
 @Getter
 public class InMemoryFilmStorage implements FilmStorage {
+    private final UserStorage userStorage;
     private final Map<Integer, Film> films = new HashMap<>();
     private int currentId = 0;
+
+    public InMemoryFilmStorage(@Qualifier("InMemoryUserStorage") UserStorage userStorage) {
+        this.userStorage = userStorage;
+    }
 
     @Override
     public Collection<Film> getFilms() {
@@ -40,6 +47,9 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getCommonFilms(int userId, int friendId) {
+        userStorage.checkUserExistence(userId);
+        userStorage.checkUserExistence(friendId);
+
         log.debug("Возвращаем список общих фильмов пользователей с id {} и {}", userId, friendId);
         List<Film> result = films.values().stream()
                 .filter(film -> film.getThoseWhoLiked().stream()
@@ -59,7 +69,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film newFilm) {
-        checkFilmId(newFilm.getId());
+        checkFilmExistence(newFilm.getId());
 
         Film oldFilm = films.get(newFilm.getId());
 
@@ -82,13 +92,13 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film deleteFilm(int id) {
-        checkFilmId(id);
+        checkFilmExistence(id);
 
         log.debug("Удаляем фильм с id {}", id);
         return films.remove(id);
     }
 
-    public void checkFilmId(int id) {
+    public void checkFilmExistence(int id) {
         if (!films.containsKey(id)) {
             log.debug("Не удалось найти фильм с указанным id");
             throw new NotFoundException("Фильм с id " + id + " не найден");

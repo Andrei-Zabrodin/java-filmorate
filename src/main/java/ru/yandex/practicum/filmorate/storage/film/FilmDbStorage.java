@@ -1,19 +1,18 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DatabaseException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmSortBy;
-import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.DbStorage;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.rating.RatingStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,14 +46,17 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
     private static final String UPDATE_FILM_QUERY_START = "UPDATE films SET ";
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
 
+    private final UserStorage userStorage;
     private final GenreStorage genreStorage;
     private final DirectorStorage directorStorage;
     private final RatingStorage ratingStorage;
     private final FilmEnricher filmEnricher;
 
-    public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, GenreStorage genreStorage,
-                         DirectorStorage directorStorage, RatingStorage ratingStorage, FilmEnricher filmEnricher) {
+    public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, @Qualifier("UserDbStorage") UserStorage userStorage,
+                         GenreStorage genreStorage, DirectorStorage directorStorage, RatingStorage ratingStorage,
+                         FilmEnricher filmEnricher) {
         super(jdbc, mapper);
+        this.userStorage = userStorage;
         this.genreStorage = genreStorage;
         this.directorStorage = directorStorage;
         this.ratingStorage = ratingStorage;
@@ -81,6 +83,9 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> getCommonFilms(int userId, int friendId) {
+        userStorage.checkUserExistence(userId);
+        userStorage.checkUserExistence(friendId);
+
         log.debug("Возвращаем список общих фильмов пользователей с id {} и {}", userId, friendId);
         return filmEnricher.enrichFilms(findMany(GET_COMMON_FILMS_QUERY, userId, friendId));
     }
@@ -117,7 +122,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
     @Override
     public Film updateFilm(Film newFilm) {
-        checkFilmId(newFilm.getId());
+        checkFilmExistence(newFilm.getId());
 
         StringBuilder query = new StringBuilder(UPDATE_FILM_QUERY_START);
         List<Object> params = new ArrayList<>();
@@ -172,8 +177,6 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
     @Override
     public Film deleteFilm(int id) {
-        checkFilmId(id);
-
         Film film = getFilmById(id);
         log.debug("Удаляем фильм с id {}", id);
         delete(DELETE_FILM_QUERY, id);
@@ -181,7 +184,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
         return film;
     }
 
-    private void checkFilmId(int filmId) {
+    private void checkFilmExistence(int filmId) {
         getFilmById(filmId);
     }
 
