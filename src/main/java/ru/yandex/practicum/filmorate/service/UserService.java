@@ -22,6 +22,10 @@ public class UserService {
         return userStorage.getUsers();
     }
 
+    public User getUserById(int id) {
+        return userStorage.getUserById(id);
+    }
+
     public User addUser(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
