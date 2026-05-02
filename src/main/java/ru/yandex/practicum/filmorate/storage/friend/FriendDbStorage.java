@@ -31,15 +31,15 @@ public class FriendDbStorage extends DbStorage<User> implements FriendsStorage {
 
     @Override
     public Collection<User> getFriends(int userId) {
-        checkUserId(userId);
+        userStorage.checkUserExistence(userId);
 
         return findMany(GET_ALL_FRIENDS_QUERY, userId);
     }
 
     @Override
     public Collection<User> getCommonFriends(int userId, int otherId) {
-        checkUserId(userId);
-        checkUserId(otherId);
+        userStorage.checkUserExistence(userId);
+        userStorage.checkUserExistence(otherId);
 
         return findMany(GET_COMMON_FRIENDS_QUERY, userId, otherId);
     }
@@ -54,12 +54,8 @@ public class FriendDbStorage extends DbStorage<User> implements FriendsStorage {
 
     @Override
     public void deleteFriend(int userId, int friendId) {
-        checkUserId(userId);
-        checkUserId(friendId);
+        userStorage.checkUserExistence(userId);
+        userStorage.checkUserExistence(friendId);
         delete(DELETE_FRIEND_QUERY, userId, friendId);
-    }
-
-    private void checkUserId(int userId) {
-        userStorage.getUserById(userId);
     }
 }

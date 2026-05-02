@@ -7,10 +7,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DatabaseException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmSortBy;
-import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.DbStorage;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
@@ -46,6 +43,12 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             "SELECT f.*, r.name as rating_name FROM films f " +
             "JOIN ratings r USING (rating_id) " +
             "WHERE film_id IN (SELECT film_id FROM recommended_film_ids)";
+    private static final String GET_COMMON_FILMS_QUERY = "SELECT f.*, r.name AS rating_name FROM films f " +
+            "JOIN (SELECT film_id FROM likes WHERE user_id IN (?, ?) " +
+            "GROUP BY film_id HAVING COUNT(user_id) > 1) common_films USING(film_id) " +
+            "JOIN (SELECT film_id, count(user_id) AS like_count FROM likes GROUP BY film_id) l USING(film_id)" +
+            "JOIN ratings r USING (rating_id)" +
+            "ORDER BY l.like_count DESC";
     private static final String ADD_FILM_QUERY = "INSERT INTO films(name, description, release_date, duration," +
             " rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_FILM_QUERY_START = "UPDATE films SET ";
@@ -58,8 +61,8 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
     private final FilmEnricher filmEnricher;
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, @Qualifier("userDbStorage") UserStorage userStorage,
-                         GenreStorage genreStorage,
-                         DirectorStorage directorStorage, RatingStorage ratingStorage, FilmEnricher filmEnricher) {
+                         GenreStorage genreStorage, DirectorStorage directorStorage, RatingStorage ratingStorage,
+                         FilmEnricher filmEnricher) {
         super(jdbc, mapper);
         this.userStorage = userStorage;
         this.genreStorage = genreStorage;
@@ -89,9 +92,18 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
     @Override
     public Collection<Film> getRecommendations(int userId) {
         //Проверяем наличие пользователя
-        userStorage.getUserById(userId);
+        userStorage.checkUserExistence(userId);
 
         return filmEnricher.enrichFilms(findMany(GET_RECOMMENDATION_BY_USER_ID_QUERY, userId, userId, userId));
+    }
+  
+    @Override
+    public Collection<Film> getCommonFilms(int userId, int friendId) {
+        userStorage.checkUserExistence(userId);
+        userStorage.checkUserExistence(friendId);
+
+        log.debug("Возвращаем список общих фильмов пользователей с id {} и {}", userId, friendId);
+        return filmEnricher.enrichFilms(findMany(GET_COMMON_FILMS_QUERY, userId, friendId));
     }
 
     @Override
@@ -126,7 +138,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
     @Override
     public Film updateFilm(Film newFilm) {
-        checkFilmId(newFilm.getId());
+        checkFilmExistence(newFilm.getId());
 
         StringBuilder query = new StringBuilder(UPDATE_FILM_QUERY_START);
         List<Object> params = new ArrayList<>();
@@ -181,8 +193,6 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
     @Override
     public Film deleteFilm(int id) {
-        checkFilmId(id);
-
         Film film = getFilmById(id);
         log.debug("Удаляем фильм с id {}", id);
         delete(DELETE_FILM_QUERY, id);
@@ -190,7 +200,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
         return film;
     }
 
-    private void checkFilmId(int filmId) {
+    private void checkFilmExistence(int filmId) {
         getFilmById(filmId);
     }
 
