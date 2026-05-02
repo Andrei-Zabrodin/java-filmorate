@@ -5,7 +5,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -17,14 +20,17 @@ public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final EventStorage eventStorage;
 
     public ReviewService(
             ReviewStorage reviewStorage,
             @Qualifier("userDbStorage") UserStorage userStorage,
-            @Qualifier("filmDbStorage") FilmStorage filmStorage) {
+            @Qualifier("filmDbStorage") FilmStorage filmStorage,
+            EventStorage eventStorage) {
         this.reviewStorage = reviewStorage;
         this.userStorage = userStorage;
         this.filmStorage = filmStorage;
+        this.eventStorage = eventStorage;
     }
 
     public Review addReview(Review review) {
@@ -32,8 +38,11 @@ public class ReviewService {
         // Проверяем существование пользователя и фильма
         userStorage.getUserById(review.getUserId());
         filmStorage.getFilmById(review.getFilmId());
+
         log.debug("Создаём отзыв для фильма {} от пользователя {}", review.getFilmId(), review.getUserId());
-        return reviewStorage.addReview(review);
+        Review result = reviewStorage.addReview(review);
+        eventStorage.addEvent(review.getUserId(), EventType.REVIEW, OperationType.ADD, review.getReviewId());
+        return result;
     }
 
     public Review updateReview(Review review) {
@@ -42,12 +51,16 @@ public class ReviewService {
             throw new ValidateException("Необходимо указать id отзыва для обновления!");
         }
         log.debug("Обновляем отзыв с id {}", review.getReviewId());
-        return reviewStorage.updateReview(review);
+        Review result = reviewStorage.updateReview(review);
+        eventStorage.addEvent(review.getUserId(), EventType.REVIEW, OperationType.UPDATE, review.getReviewId());
+        return result;
     }
 
     public void deleteReview(int reviewId) {
         log.debug("Удаляем отзыв с id {}", reviewId);
+        Review review = getReviewById(reviewId);
         reviewStorage.deleteReview(reviewId);
+        eventStorage.addEvent(review.getUserId(), EventType.REVIEW, OperationType.REMOVE, reviewId);
     }
 
     public Review getReviewById(int reviewId) {
