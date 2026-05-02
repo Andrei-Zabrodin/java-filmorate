@@ -87,10 +87,9 @@ public class ReviewDbStorage extends DbStorage<Review> implements ReviewStorage 
     }
 
     @Override
-    public Collection<Review> getReviewsByFilmId(int filmId, int count) {
+    public Collection<Review> getReviewsByFilmId(Integer filmId, int count) {
         log.debug("Получаем до {} отзывов для фильма {}", count, filmId);
-        if (filmId == 0) {
-            // Если filmId не указан или 0 — возвращаем все отзывы
+        if (filmId == null) {
             return findMany(GET_ALL_REVIEWS_QUERY, count);
         }
         return findMany(GET_REVIEWS_BY_FILM_QUERY, filmId, count);

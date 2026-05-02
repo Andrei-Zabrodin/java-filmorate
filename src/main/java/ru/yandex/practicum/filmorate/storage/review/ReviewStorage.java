@@ -13,7 +13,7 @@ public interface ReviewStorage {
 
     Optional<Review> getReviewById(int reviewId);
 
-    Collection<Review> getReviewsByFilmId(int filmId, int count);
+    Collection<Review> getReviewsByFilmId(Integer filmId, int count);
 
     void addReaction(int reviewId, int userId, boolean isLike);
 

@@ -58,8 +58,16 @@ public class ReviewService {
                 });
     }
 
-    public Collection<Review> getReviews(int filmId, int count) {
-        if (count <= 0) count = 10;
+    public Collection<Review> getReviews(Integer filmId, int count) {
+        if (count <= 0) {
+            throw new ValidateException("Параметр count должен быть положительным!");
+        }
+        if (filmId != null) {
+            if (filmId <= 0) {
+                throw new ValidateException("ID фильма должен быть положительным!");
+            }
+            filmStorage.getFilmById(filmId); // Проверка существования
+        }
         log.debug("Получаем отзывы: filmId={}, count={}", filmId, count);
         return reviewStorage.getReviewsByFilmId(filmId, count);
     }
