@@ -30,7 +30,7 @@ public class UserService {
     public User getUserById(int id) {
         return userStorage.getUserById(id);
     }
-  
+
     public Collection<Film> getRecommendations(int userId) {
         return filmStorage.getRecommendations(userId);
     }
