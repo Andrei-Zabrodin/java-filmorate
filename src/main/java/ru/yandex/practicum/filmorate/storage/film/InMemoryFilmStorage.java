@@ -7,14 +7,10 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,6 +41,23 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films.get(id);
     }
 
+    @Override
+    public Collection<Film> getRecommendations(int userId) {
+        //Проверяем наличие пользователя
+        userStorage.checkUserExistence(userId);
+
+        Map<Integer, Set<Integer>> likesMap = getLikesMap();
+        Set<Integer> recommendedFilmsIds = getRecommendedFilmIds(userId, likesMap);
+
+        if (recommendedFilmsIds.isEmpty()) {
+            throw new NotFoundException("К сожалению, для пользователя с id " + userId + " нет рекомендаций");
+        }
+
+        return films.values().stream()
+                .filter(film -> recommendedFilmsIds.contains(film.getId()))
+                .collect(Collectors.toList());
+    }
+  
     @Override
     public Collection<Film> getCommonFilms(int userId, int friendId) {
         userStorage.checkUserExistence(userId);
@@ -120,5 +133,51 @@ public class InMemoryFilmStorage implements FilmStorage {
             return Comparator.comparingInt(Film::getLikesAmount).reversed();
         }
         return Comparator.comparing(Film::getReleaseDate);
+    }
+
+    //Получаем таблицу, где ключи — id пользователей, значения — множества id фильмов, которые этот пользователь лайкнул
+    private Map<Integer, Set<Integer>> getLikesMap() {
+        Map<Integer, Set<Integer>> likesMap = new HashMap<>();
+
+        for (Film film : films.values()) {
+            for (User user : film.getThoseWhoLiked())
+                likesMap.computeIfAbsent(user.getId(), k -> new HashSet<>()).add(film.getId());
+        }
+
+        return likesMap;
+    }
+
+    //Ищем id пользователя, у которого больше всего совпадений по фильмам с целевым пользователем
+    private Set<Integer> getRecommendedFilmIds(int userId, Map<Integer, Set<Integer>> likesMap) {
+        Set<Integer> targetUserFilmIds = likesMap.get(userId);
+
+        if (targetUserFilmIds == null || targetUserFilmIds.isEmpty()) {
+            throw new NotFoundException("У пользователя с id " + userId + " ещё нет лайков");
+        }
+
+        int maxIntersection = 0;
+        int mostSimilarUserId = userId;
+
+        for (Map.Entry<Integer, Set<Integer>> likesEntry : likesMap.entrySet()) {
+            if (likesEntry.getKey() != userId) {
+                Set<Integer> otherUserFilmIds = new HashSet<>(likesEntry.getValue());
+                otherUserFilmIds.retainAll(targetUserFilmIds);
+
+                if (otherUserFilmIds.size() > maxIntersection) {
+                    maxIntersection = otherUserFilmIds.size();
+                    mostSimilarUserId = likesEntry.getKey();
+                }
+            }
+        }
+
+        if (mostSimilarUserId == userId) {
+            throw new NotFoundException("У пользователя с id " + userId +
+                    " не найдено пересечений по лайкам с другими пользователями");
+        }
+
+        Set<Integer> mostSimilarUserFilmIds = new HashSet<>(likesMap.get(mostSimilarUserId));
+        mostSimilarUserFilmIds.removeAll(targetUserFilmIds);
+
+        return mostSimilarUserFilmIds;
     }
 }

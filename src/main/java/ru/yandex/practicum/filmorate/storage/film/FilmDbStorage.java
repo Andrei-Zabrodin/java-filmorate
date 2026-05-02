@@ -35,6 +35,14 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             "LEFT JOIN (SELECT film_id, COUNT(user_id) AS count FROM likes GROUP BY film_id) l USING (film_id) " +
             " WHERE fd.director_id = ? " +
             " ORDER BY count DESC, f.release_date";
+    private static final String GET_RECOMMENDATION_BY_USER_ID_QUERY = "WITH most_similar_user AS " +
+            "(SELECT l2.user_id FROM likes l1 JOIN likes l2 USING(film_id) WHERE l1.user_id = ? AND l2.user_id != ? " +
+            "GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1), " +
+            "recommended_film_ids AS (SELECT film_id FROM likes WHERE user_id = (SELECT user_id FROM most_similar_user) " +
+            "EXCEPT SELECT film_id FROM likes WHERE user_id = ?) " +
+            "SELECT f.*, r.name as rating_name FROM films f " +
+            "JOIN ratings r USING (rating_id) " +
+            "WHERE film_id IN (SELECT film_id FROM recommended_film_ids)";
     private static final String GET_COMMON_FILMS_QUERY = "SELECT f.*, r.name AS rating_name FROM films f " +
             "JOIN (SELECT film_id FROM likes WHERE user_id IN (?, ?) " +
             "GROUP BY film_id HAVING COUNT(user_id) > 1) common_films USING(film_id) " +
@@ -81,6 +89,14 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
         }
     }
 
+    @Override
+    public Collection<Film> getRecommendations(int userId) {
+        //Проверяем наличие пользователя
+        userStorage.checkUserExistence(userId);
+
+        return filmEnricher.enrichFilms(findMany(GET_RECOMMENDATION_BY_USER_ID_QUERY, userId, userId, userId));
+    }
+  
     @Override
     public Collection<Film> getCommonFilms(int userId, int friendId) {
         userStorage.checkUserExistence(userId);
