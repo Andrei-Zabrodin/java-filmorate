@@ -31,4 +31,9 @@ public class UserController {
     public User updateUser(@Valid @RequestBody User newUser) {
         return userService.updateUser(newUser);
     }
+
+    @DeleteMapping("/{userId}")
+    public User deleteUser(@PathVariable int userId) {
+        return userService.deleteUser(userId);
+    }
 }
