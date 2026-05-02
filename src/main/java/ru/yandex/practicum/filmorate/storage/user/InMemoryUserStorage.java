@@ -25,7 +25,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User getUserById(int id) {
-        checkUserId(id);
+        checkUserExistence(id);
 
         log.debug("Найден пользователь с id {}", id);
         return users.get(id);
@@ -42,7 +42,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User newUser) {
-        checkUserId(newUser.getId());
+        checkUserExistence(newUser.getId());
 
         User oldUser = users.get(newUser.getId());
 
@@ -57,13 +57,14 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User deleteUser(int id) {
-        checkUserId(id);
+        checkUserExistence(id);
 
         log.debug("Удаляем пользователя с id {}", id);
         return users.remove(id);
     }
 
-    public void checkUserId(int id) {
+    @Override
+    public void checkUserExistence(int id) {
         if (!users.containsKey(id)) {
             log.debug("Не удалось найти пользователя с указанным id");
             throw new NotFoundException("Пользователь с id " + id + " не найден");
