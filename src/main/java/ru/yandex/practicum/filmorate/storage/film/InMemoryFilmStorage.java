@@ -57,7 +57,7 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .filter(film -> recommendedFilmsIds.contains(film.getId()))
                 .collect(Collectors.toList());
     }
-  
+
     @Override
     public Collection<Film> getCommonFilms(int userId, int friendId) {
         userStorage.checkUserExistence(userId);
