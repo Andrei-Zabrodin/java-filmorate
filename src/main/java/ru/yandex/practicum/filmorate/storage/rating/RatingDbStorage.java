@@ -21,6 +21,7 @@ public class RatingDbStorage extends DbStorage<Rating> implements RatingStorage 
         super(jdbc, mapper);
     }
 
+    // Добавлена сортировка
     @Override
     public Collection<Rating> getRatings() {
         return findMany(GET_RATINGS_QUERY);
