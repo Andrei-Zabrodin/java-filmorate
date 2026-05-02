@@ -27,7 +27,7 @@ public class UserController {
     public User getUser(@PathVariable int userId) {
         return userService.getUserById(userId);
     }
-      
+
     @GetMapping("/{id}/recommendations")
     public Collection<Film> getRecommendations(@PathVariable int id) {
         log.debug("Возвращён список фильмов-рекомендаций");
