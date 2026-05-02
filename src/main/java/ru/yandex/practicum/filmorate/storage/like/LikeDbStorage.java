@@ -16,10 +16,10 @@ public class LikeDbStorage extends DbStorage<Film> implements LikeStorage {
     private static final String ADD_LIKE_QUERY = "INSERT INTO likes(film_id, user_id) VALUES (?, ?)";
     private static final String DELETE_LIKE_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     private static final String GET_POPULAR_FILMS_QUERY = "SELECT f.*, l.count, r.name AS rating_name FROM films f " +
-            "JOIN (SELECT film_id, COUNT(user_id) AS count FROM likes GROUP BY film_id ORDER BY count DESC LIMIT ?) l " +
+            "LEFT JOIN (SELECT film_id, COUNT(user_id) AS count FROM likes GROUP BY film_id) l " +
             "USING (film_id) " +
             "JOIN ratings r USING (rating_id) " +
-            "ORDER BY l.count DESC";
+            "ORDER BY COALESCE(l.count, 0) DESC, f.film_id ASC LIMIT ?";
 
     private final FilmEnricher filmEnricher;
 
