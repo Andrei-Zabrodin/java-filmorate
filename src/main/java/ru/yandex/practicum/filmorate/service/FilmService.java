@@ -28,6 +28,10 @@ public class FilmService {
         return filmStorage.getFilmById(filmId);
     }
 
+    public Collection<Film> getCommonFilms(int userId, int friendId) {
+        return filmStorage.getCommonFilms(userId, friendId);
+    }
+
     public Film addFilm(Film film) {
         return filmStorage.addFilm(film);
     }
