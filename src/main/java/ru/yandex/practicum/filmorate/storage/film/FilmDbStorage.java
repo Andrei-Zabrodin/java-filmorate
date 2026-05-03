@@ -96,7 +96,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
 
         return filmEnricher.enrichFilms(findMany(GET_RECOMMENDATION_BY_USER_ID_QUERY, userId, userId, userId));
     }
-  
+
     @Override
     public Collection<Film> getCommonFilms(int userId, int friendId) {
         userStorage.checkUserExistence(userId);
