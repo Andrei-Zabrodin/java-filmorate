@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmSearchBy;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -179,5 +180,11 @@ public class InMemoryFilmStorage implements FilmStorage {
         mostSimilarUserFilmIds.removeAll(targetUserFilmIds);
 
         return mostSimilarUserFilmIds;
+    }
+
+    @Override
+    public Collection<Film> searchFilms(String query, Set<FilmSearchBy> searchBy) {
+        // Заглушка
+        return Collections.emptyList();
     }
 }

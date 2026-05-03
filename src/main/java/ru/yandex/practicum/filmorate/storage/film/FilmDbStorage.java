@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DatabaseException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.DbStorage;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
@@ -53,7 +54,25 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             " rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_FILM_QUERY_START = "UPDATE films SET ";
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
-
+    private static final String SEARCH_BY_TITLE_QUERY =
+            "SELECT f.*, r.name AS rating_name FROM films f " +
+                    "JOIN ratings r USING (rating_id) " +
+                    "WHERE f.name ILIKE ? " +
+                    "ORDER BY (SELECT COUNT(*) FROM likes WHERE film_id = f.film_id) DESC, f.film_id";
+    private static final String SEARCH_BY_DIRECTOR_QUERY =
+            "SELECT f.*, r.name AS rating_name FROM films f " +
+                    "JOIN ratings r USING (rating_id) " +
+                    "JOIN films_directors fd ON f.film_id = fd.film_id " +
+                    "JOIN directors d ON fd.director_id = d.director_id " +
+                    "WHERE d.name ILIKE ? " +
+                    "ORDER BY (SELECT COUNT(*) FROM likes WHERE film_id = f.film_id) DESC, f.film_id";
+    private static final String SEARCH_BY_TITLE_AND_DIRECTOR_QUERY =
+            "SELECT DISTINCT f.*, r.name AS rating_name FROM films f " +
+                    "JOIN ratings r USING (rating_id) " +
+                    "LEFT JOIN films_directors fd ON f.film_id = fd.film_id " +
+                    "LEFT JOIN directors d ON fd.director_id = d.director_id " +
+                    "WHERE f.name ILIKE ? OR d.name ILIKE ? " +
+                    "ORDER BY (SELECT COUNT(*) FROM likes WHERE film_id = f.film_id) DESC, f.film_id";
     private final UserStorage userStorage;
     private final GenreStorage genreStorage;
     private final DirectorStorage directorStorage;
@@ -212,6 +231,22 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
                 ? findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY, directorId)
                 : findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY, directorId);
 
+        return filmEnricher.enrichFilms(films);
+    }
+
+    @Override
+    public Collection<Film> searchFilms(String query, Set<FilmSearchBy> searchBy) {
+        String searchPattern = "%" + query + "%";
+        Collection<Film> films;
+        if (searchBy.contains(FilmSearchBy.TITLE) && searchBy.contains(FilmSearchBy.DIRECTOR)) {
+            films = findMany(SEARCH_BY_TITLE_AND_DIRECTOR_QUERY, searchPattern, searchPattern);
+        } else if (searchBy.contains(FilmSearchBy.TITLE)) {
+            films = findMany(SEARCH_BY_TITLE_QUERY, searchPattern);
+        } else if (searchBy.contains(FilmSearchBy.DIRECTOR)) {
+            films = findMany(SEARCH_BY_DIRECTOR_QUERY, searchPattern);
+        } else {
+            throw new ValidateException("Параметр by должен содержать хотя бы одно значение: title или director");
+        }
         return filmEnricher.enrichFilms(films);
     }
 }

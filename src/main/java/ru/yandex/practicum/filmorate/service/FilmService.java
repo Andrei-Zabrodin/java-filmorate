@@ -5,10 +5,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmSearchBy;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -52,5 +54,9 @@ public class FilmService {
 
     public Collection<Film> getFilmsByDirector(int directorId, FilmSortBy sortBy) {
         return filmStorage.getFilmsByDirector(directorId, sortBy);
+    }
+
+    public Collection<Film> searchFilms(String query, Set<FilmSearchBy> searchBy) {
+        return filmStorage.searchFilms(query, searchBy);
     }
 }
