@@ -10,6 +10,7 @@ public enum FilmSearchBy {
     TITLE("title"),
     DIRECTOR("director");
     private final String value;
+
     FilmSearchBy(String value) {
         this.value = value;
     }
