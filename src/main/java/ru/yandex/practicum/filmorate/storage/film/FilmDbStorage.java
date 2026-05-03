@@ -67,12 +67,15 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
                     "WHERE UPPER(d.name) LIKE UPPER(?) " +
                     "ORDER BY (SELECT COUNT(*) FROM likes WHERE film_id = f.film_id) DESC, f.film_id";
     private static final String SEARCH_BY_TITLE_AND_DIRECTOR_QUERY =
-            "SELECT DISTINCT f.*, r.name AS rating_name FROM films f " +
+            "SELECT f.*, r.name AS rating_name, " +
+                    "(SELECT COUNT(*) FROM likes WHERE film_id = f.film_id) AS like_count " +
+                    "FROM films f " +
                     "JOIN ratings r USING (rating_id) " +
                     "LEFT JOIN films_directors fd ON f.film_id = fd.film_id " +
                     "LEFT JOIN directors d ON fd.director_id = d.director_id " +
                     "WHERE UPPER(f.name) LIKE UPPER(?) OR UPPER(d.name) LIKE UPPER(?) " +
-                    "ORDER BY (SELECT COUNT(*) FROM likes WHERE film_id = f.film_id) DESC, f.film_id";
+                    "GROUP BY f.film_id, r.name " +
+                    "ORDER BY like_count DESC, f.film_id";
     private final UserStorage userStorage;
     private final GenreStorage genreStorage;
     private final DirectorStorage directorStorage;
