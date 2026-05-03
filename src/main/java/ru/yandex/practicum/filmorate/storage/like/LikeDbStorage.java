@@ -36,10 +36,6 @@ public class LikeDbStorage extends DbStorage<Film> implements LikeStorage {
         delete(DELETE_LIKE_QUERY, filmId, userId);
     }
 
-    public Collection<Film> getPopularFilms(int count) {
-        return getPopularFilms(count, null, null);
-    }
-
     @Override
     public Collection<Film> getPopularFilms(int count, Integer genreId, Integer year) {
         StringBuilder query = new StringBuilder(GET_POPULAR_FILMS_QUERY_BASE);
