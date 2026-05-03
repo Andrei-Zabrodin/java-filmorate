@@ -57,21 +57,21 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
     private static final String SEARCH_BY_TITLE_QUERY =
             "SELECT f.*, r.name AS rating_name FROM films f " +
                     "JOIN ratings r USING (rating_id) " +
-                    "WHERE f.name ILIKE ? " +
+                    "WHERE UPPER(f.name) LIKE UPPER(?) " +
                     "ORDER BY (SELECT COUNT(*) FROM likes WHERE film_id = f.film_id) DESC, f.film_id";
     private static final String SEARCH_BY_DIRECTOR_QUERY =
             "SELECT f.*, r.name AS rating_name FROM films f " +
                     "JOIN ratings r USING (rating_id) " +
                     "JOIN films_directors fd ON f.film_id = fd.film_id " +
                     "JOIN directors d ON fd.director_id = d.director_id " +
-                    "WHERE d.name ILIKE ? " +
+                    "WHERE UPPER(d.name) LIKE UPPER(?) " +
                     "ORDER BY (SELECT COUNT(*) FROM likes WHERE film_id = f.film_id) DESC, f.film_id";
     private static final String SEARCH_BY_TITLE_AND_DIRECTOR_QUERY =
             "SELECT DISTINCT f.*, r.name AS rating_name FROM films f " +
                     "JOIN ratings r USING (rating_id) " +
                     "LEFT JOIN films_directors fd ON f.film_id = fd.film_id " +
                     "LEFT JOIN directors d ON fd.director_id = d.director_id " +
-                    "WHERE f.name ILIKE ? OR d.name ILIKE ? " +
+                    "WHERE UPPER(f.name) LIKE UPPER(?) OR UPPER(d.name) LIKE UPPER(?) " +
                     "ORDER BY (SELECT COUNT(*) FROM likes WHERE film_id = f.film_id) DESC, f.film_id";
     private final UserStorage userStorage;
     private final GenreStorage genreStorage;
