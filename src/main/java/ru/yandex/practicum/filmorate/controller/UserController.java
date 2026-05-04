@@ -23,6 +23,11 @@ public class UserController {
         return userService.getUsers();
     }
 
+    @GetMapping("/{userId}")
+    public User getUser(@PathVariable int userId) {
+        return userService.getUserById(userId);
+    }
+
     @GetMapping("/{id}/recommendations")
     public Collection<Film> getRecommendations(@PathVariable int id) {
         log.debug("Возвращён список фильмов-рекомендаций");
@@ -37,5 +42,10 @@ public class UserController {
     @PutMapping
     public User updateUser(@Valid @RequestBody User newUser) {
         return userService.updateUser(newUser);
+    }
+
+    @DeleteMapping("/{userId}")
+    public User deleteUser(@PathVariable int userId) {
+        return userService.deleteUser(userId);
     }
 }
