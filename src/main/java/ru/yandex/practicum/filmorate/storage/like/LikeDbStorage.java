@@ -18,7 +18,8 @@ import java.util.List;
 @Slf4j
 @Repository
 public class LikeDbStorage extends DbStorage<Film> implements LikeStorage {
-    private static final String ADD_LIKE_QUERY = "INSERT INTO likes(film_id, user_id) VALUES (?, ?)";
+    private static final String ADD_LIKE_QUERY = "MERGE INTO likes (film_id, user_id)" +
+            " KEY (film_id, user_id) VALUES (?, ?)";
     private static final String DELETE_LIKE_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     private static final String GET_POPULAR_FILMS_QUERY_BASE = "SELECT f.*, l.count, r.name AS rating_name FROM films f " +
             "LEFT JOIN (SELECT film_id, COUNT(user_id) AS count FROM likes GROUP BY film_id) l USING (film_id) " +
