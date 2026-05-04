@@ -1,12 +1,15 @@
 package ru.yandex.practicum.filmorate.storage.like;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.DbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmEnricher;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -21,18 +24,29 @@ public class LikeDbStorage extends DbStorage<Film> implements LikeStorage {
             "LEFT JOIN (SELECT film_id, COUNT(user_id) AS count FROM likes GROUP BY film_id) l USING (film_id) " +
             "JOIN ratings r USING (rating_id) ";
 
+    private final UserStorage userStorage;
+    private final FilmStorage filmStorage;
     private final FilmEnricher filmEnricher;
 
-    public LikeDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, FilmEnricher filmEnricher) {
+    public LikeDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper, @Qualifier("userDbStorage") UserStorage userStorage,
+                         @Qualifier("filmDbStorage") FilmStorage filmStorage, FilmEnricher filmEnricher) {
         super(jdbc, mapper);
+        this.userStorage = userStorage;
+        this.filmStorage = filmStorage;
         this.filmEnricher = filmEnricher;
     }
 
     public void likeFilm(int filmId, int userId) {
+        userStorage.checkUserExistence(userId);
+        filmStorage.checkFilmExistence(filmId);
+
         simpleInsert(ADD_LIKE_QUERY, filmId, userId);
     }
 
     public void deleteLike(int filmId, int userId) {
+        userStorage.checkUserExistence(userId);
+        filmStorage.checkFilmExistence(filmId);
+
         delete(DELETE_LIKE_QUERY, filmId, userId);
     }
 

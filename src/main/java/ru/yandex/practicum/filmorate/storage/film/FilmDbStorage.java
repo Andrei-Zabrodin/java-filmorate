@@ -199,16 +199,25 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             update(query.toString(), params.toArray());
         }
 
-        Film film = getFilmById(newFilm.getId());
+        if (newFilm.getGenres() != null && !newFilm.getGenres().isEmpty()) {
+            Set<Integer> genreIds = newFilm.getGenres().stream()
+                    .map(Genre::getId)
+                    .collect(Collectors.toSet());
+
+            genreStorage.deleteFilmGenres(newFilm.getId());
+            genreStorage.addFilmGenres(newFilm.getId(), genreIds);
+        } else if (newFilm.getGenres() != null) {
+            genreStorage.deleteFilmGenres(newFilm.getId());
+        }
 
         if (newFilm.getDirectors() != null && !newFilm.getDirectors().isEmpty()) {
             Set<Integer> directorIds = newFilm.getDirectors().stream()
                     .map(Director::getId)
                     .collect(Collectors.toSet());
             directorStorage.addFilmDirectors(newFilm.getId(), directorIds);
-            film = getFilmById(newFilm.getId());
         }
 
+        Film film = getFilmById(newFilm.getId());
         log.debug("Фильм с id {} обновлен", newFilm.getId());
         return film;
     }
@@ -222,7 +231,8 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
         return film;
     }
 
-    private void checkFilmExistence(int filmId) {
+    @Override
+    public void checkFilmExistence(int filmId) {
         getFilmById(filmId);
     }
 

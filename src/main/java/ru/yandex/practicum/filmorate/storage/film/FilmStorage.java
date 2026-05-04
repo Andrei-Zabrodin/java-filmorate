@@ -25,4 +25,6 @@ public interface FilmStorage {
     Collection<Film> getFilmsByDirector(int directorId, FilmSortBy sortBy);
 
     Collection<Film> searchFilms(String query, Set<FilmSearchBy> searchBy);
+
+    void checkFilmExistence(int id);
 }

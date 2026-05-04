@@ -23,6 +23,7 @@ public class GenreDbStorage extends DbStorage<Genre> implements GenreStorage {
             "JOIN genres g USING (genre_id) ";
     private static final String ADD_FILM_GENRES_QUERY = "INSERT INTO films_genres (film_id, genre_id) " +
             "VALUES (?, ?)";
+    private static final String DELETE_FILM_GENRES_QUERY = "DELETE FROM films_genres WHERE film_id = ?";
 
     public GenreDbStorage(JdbcTemplate jdbc, RowMapper<Genre> mapper) {
         super(jdbc, mapper);
@@ -86,11 +87,16 @@ public class GenreDbStorage extends DbStorage<Genre> implements GenreStorage {
         }
 
         List<Object[]> batch = genreIds.stream()
-                .peek(this::getGenreById)
+                .peek(this::getGenreById)  //Проверка наличия жанра
                 .map(genreId -> new Object[]{filmId, genreId})
                 .collect(Collectors.toList());
 
         batchUpdate(ADD_FILM_GENRES_QUERY, batch);
         log.debug("Добавили к фильму с id {} количество жанров: {}", filmId, genreIds.size());
+    }
+
+    @Override
+    public void deleteFilmGenres(int filmId) {
+        delete(DELETE_FILM_GENRES_QUERY, filmId);
     }
 }
