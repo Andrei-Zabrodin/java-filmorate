@@ -501,7 +501,7 @@ class FilmorateApplicationTests {
         likeStorage.likeFilm(3, 2);
 
         //В топ2 должны быть фильм 1 и 3
-        Collection<Film> foundFilms = likeStorage.getPopularFilms(2);
+        Collection<Film> foundFilms = likeStorage.getPopularFilms(2, null, null);
 
         assertThat(foundFilms).extracting(Film::getName)
                 .containsExactlyInAnyOrder("film1", "film3");
