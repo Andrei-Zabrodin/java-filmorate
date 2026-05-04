@@ -1,9 +1,10 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmSearchBy;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
-
 import java.util.Collection;
+import java.util.Set;
 
 public interface FilmStorage {
 
@@ -22,4 +23,6 @@ public interface FilmStorage {
     Film deleteFilm(int id);
 
     Collection<Film> getFilmsByDirector(int directorId, FilmSortBy sortBy);
+
+    Collection<Film> searchFilms(String query, Set<FilmSearchBy> searchBy);
 }
