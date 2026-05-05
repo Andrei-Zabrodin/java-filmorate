@@ -40,7 +40,8 @@ public class FilmControllerTest {
                 "\"genres\":[]," +
                 "\"directors\":[]," +
                 "\"mpa\":{" +
-                    "\"id\":2}" +
+                    "\"id\":2," +
+                    "\"name\":\"PG\"}" +
                 "}";
 
         String response = mvc.perform(post(PATH)
