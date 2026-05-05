@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmSearchBy;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -76,6 +78,16 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film addFilm(Film film) {
         film.setId(++currentId);
+        if (film.getGenres() != null) {
+            film.setGenres(film.getGenres().stream()
+                    .sorted(Comparator.comparingInt(Genre::getId))
+                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+        }
+        if (film.getDirectors() != null) {
+            film.setDirectors(film.getDirectors().stream()
+                    .sorted(Comparator.comparingInt(Director::getId))
+                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+        }
         films.put(film.getId(), film);
         log.debug("Добавлен фильм с id {}", film.getId());
         return film;

@@ -152,7 +152,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             directorStorage.addFilmDirectors(id.get(), directorIds);
 
             log.debug("Добавлен фильм с id {}", film.getId());
-            return film;
+            return getFilmById(id.get());
         } else {
             throw new DatabaseException("Не удалось добавить данные");
         }
