@@ -132,7 +132,9 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     private Comparator<Film> getComparator(FilmSortBy sortBy) {
         if (FilmSortBy.LIKES.equals(sortBy)) {
-            return Comparator.comparingInt(Film::getLikesAmount).reversed();
+            return Comparator.comparingInt(Film::getLikesAmount)
+                    .reversed()
+                    .thenComparing(Film::getReleaseDate, Comparator.reverseOrder());
         }
         return Comparator.comparing(Film::getReleaseDate);
     }
