@@ -242,6 +242,10 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
                 ? findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY, directorId)
                 : findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY, directorId);
 
+        if (films.isEmpty()) {
+            throw new NotFoundException("Фильмы режиссёра с id " + directorId + " не найдены");
+        }
+
         return filmEnricher.enrichFilms(films);
     }
 

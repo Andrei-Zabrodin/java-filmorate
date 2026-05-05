@@ -139,6 +139,11 @@ public class InMemoryFilmStorage implements FilmStorage {
                         && film.getDirectors().stream().anyMatch(director -> director.getId() == directorId))
                 .sorted(getComparator(sortBy))
                 .collect(Collectors.toList());
+
+        if (result.isEmpty()) {
+            throw new NotFoundException("Фильмы режиссёра с id " + directorId + " не найдены");
+        }
+
         return result;
     }
 
