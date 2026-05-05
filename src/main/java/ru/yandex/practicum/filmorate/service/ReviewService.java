@@ -52,7 +52,7 @@ public class ReviewService {
         }
         log.debug("Обновляем отзыв с id {}", review.getReviewId());
         Review result = reviewStorage.updateReview(review);
-        eventStorage.addEvent(review.getUserId(), EventType.REVIEW, OperationType.UPDATE, review.getReviewId());
+        eventStorage.addEvent(result.getUserId(), EventType.REVIEW, OperationType.UPDATE, result.getReviewId());
         return result;
     }
 
