@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.like;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -36,11 +37,17 @@ public class LikeDbStorage extends DbStorage<Film> implements LikeStorage {
         this.filmEnricher = filmEnricher;
     }
 
-    public void likeFilm(int filmId, int userId) {
+    public boolean likeFilm(int filmId, int userId) {
         userStorage.checkUserExistence(userId);
         filmStorage.checkFilmExistence(filmId);
 
-        simpleInsert(ADD_LIKE_QUERY, filmId, userId);
+        try {
+            simpleInsert(ADD_LIKE_QUERY, filmId, userId);
+            return true;
+        } catch (DuplicateKeyException e) {
+            log.debug("Лайк от пользователя {} к фильму {} уже существует", userId, filmId);
+            return false;
+        }
     }
 
     public void deleteLike(int filmId, int userId) {
