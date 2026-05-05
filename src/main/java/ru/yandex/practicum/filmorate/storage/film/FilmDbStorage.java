@@ -199,17 +199,15 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             update(query.toString(), params.toArray());
         }
 
+        genreStorage.deleteFilmGenres(newFilm.getId());
         if (newFilm.getGenres() != null && !newFilm.getGenres().isEmpty()) {
             Set<Integer> genreIds = newFilm.getGenres().stream()
                     .map(Genre::getId)
                     .collect(Collectors.toSet());
-
-            genreStorage.deleteFilmGenres(newFilm.getId());
             genreStorage.addFilmGenres(newFilm.getId(), genreIds);
-        } else if (newFilm.getGenres() != null) {
-            genreStorage.deleteFilmGenres(newFilm.getId());
         }
 
+        directorStorage.deleteFilmDirectors(newFilm.getId());
         if (newFilm.getDirectors() != null && !newFilm.getDirectors().isEmpty()) {
             Set<Integer> directorIds = newFilm.getDirectors().stream()
                     .map(Director::getId)

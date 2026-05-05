@@ -20,4 +20,6 @@ public interface DirectorStorage {
     Map<Integer, Set<Director>> getDirectorsForAllFilms(List<Integer> filmIds);
 
     void addFilmDirectors(int filmId, Set<Integer> directorIds);
+
+    void deleteFilmDirectors(int filmId);
 }

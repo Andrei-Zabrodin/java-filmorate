@@ -93,11 +93,23 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (newFilm.getDuration() != null) {
             oldFilm.setDuration(newFilm.getDuration());
         }
-        if (newFilm.getGenres() != null && !newFilm.getGenres().isEmpty()) {
-            oldFilm.setGenres(newFilm.getGenres());
+        if (newFilm.getGenres() != null) {
+            if (!newFilm.getGenres().isEmpty()) {
+                oldFilm.setGenres(newFilm.getGenres());
+            } else {
+                oldFilm.setGenres(new HashSet<>());
+            }
+        } else {
+            oldFilm.setGenres(new HashSet<>());
         }
-        if (newFilm.getDirectors() != null && !newFilm.getDirectors().isEmpty()) {
-            oldFilm.setDirectors(newFilm.getDirectors());
+        if (newFilm.getDirectors() != null) {
+            if (!newFilm.getDirectors().isEmpty()) {
+                oldFilm.setDirectors(newFilm.getDirectors());
+            } else {
+                oldFilm.setDirectors(new HashSet<>());
+            }
+        } else {
+            oldFilm.setDirectors(new HashSet<>());
         }
 
         log.debug("Фильм с id {} обновлен", newFilm.getId());
