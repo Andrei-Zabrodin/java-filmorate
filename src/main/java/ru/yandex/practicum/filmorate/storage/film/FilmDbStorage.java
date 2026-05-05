@@ -36,14 +36,12 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             "LEFT JOIN (SELECT film_id, COUNT(user_id) AS count FROM likes GROUP BY film_id) l USING (film_id) " +
             " WHERE fd.director_id = ? " +
             " ORDER BY count DESC, f.release_date DESC";
-    private static final String GET_RECOMMENDATION_BY_USER_ID_QUERY = "WITH most_similar_user AS " +
+    private static final String GET_RECOMMENDATION_BY_USER_ID_QUERY = "SELECT f.*, r.name as rating_name FROM films f " +
+            "JOIN ratings r USING(rating_id) WHERE f.film_id IN " +
+            "(SELECT film_id FROM likes WHERE user_id = " +
             "(SELECT l2.user_id FROM likes l1 JOIN likes l2 USING(film_id) WHERE l1.user_id = ? AND l2.user_id != ? " +
-            "GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1), " +
-            "recommended_film_ids AS (SELECT film_id FROM likes WHERE user_id = (SELECT user_id FROM most_similar_user) " +
-            "EXCEPT SELECT film_id FROM likes WHERE user_id = ?) " +
-            "SELECT f.*, r.name as rating_name FROM films f " +
-            "JOIN ratings r USING (rating_id) " +
-            "WHERE film_id IN (SELECT film_id FROM recommended_film_ids)";
+            "GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1) " +
+            "EXCEPT SELECT film_id FROM likes WHERE user_id = ?)";
     private static final String GET_COMMON_FILMS_QUERY = "SELECT f.*, r.name AS rating_name FROM films f " +
             "JOIN (SELECT film_id FROM likes WHERE user_id IN (?, ?) " +
             "GROUP BY film_id HAVING COUNT(user_id) > 1) common_films USING(film_id) " +
@@ -204,7 +202,11 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             Set<Integer> genreIds = newFilm.getGenres().stream()
                     .map(Genre::getId)
                     .collect(Collectors.toSet());
+
+            genreStorage.deleteFilmGenres(newFilm.getId());
             genreStorage.addFilmGenres(newFilm.getId(), genreIds);
+        } else if (newFilm.getGenres() != null) {
+            genreStorage.deleteFilmGenres(newFilm.getId());
         }
 
         directorStorage.deleteFilmDirectors(newFilm.getId());
