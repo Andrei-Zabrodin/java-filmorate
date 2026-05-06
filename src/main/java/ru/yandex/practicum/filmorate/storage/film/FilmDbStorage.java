@@ -35,7 +35,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             "JOIN ratings r USING (rating_id) " +
             "LEFT JOIN (SELECT film_id, COUNT(user_id) AS count FROM likes GROUP BY film_id) l USING (film_id) " +
             " WHERE fd.director_id = ? " +
-            " ORDER BY count DESC, f.release_date";
+            " ORDER BY count DESC, f.release_date DESC";
     private static final String GET_RECOMMENDATION_BY_USER_ID_QUERY = "WITH most_similar_user AS " +
             "(SELECT l2.user_id FROM likes l1 JOIN likes l2 USING(film_id) WHERE l1.user_id = ? AND l2.user_id != ? " +
             "GROUP BY l2.user_id ORDER BY COUNT(*) DESC LIMIT 1), " +
@@ -152,7 +152,7 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             directorStorage.addFilmDirectors(id.get(), directorIds);
 
             log.debug("Добавлен фильм с id {}", film.getId());
-            return film;
+            return getFilmById(id.get());
         } else {
             throw new DatabaseException("Не удалось добавить данные");
         }
@@ -199,17 +199,15 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
             update(query.toString(), params.toArray());
         }
 
+        genreStorage.deleteFilmGenres(newFilm.getId());
         if (newFilm.getGenres() != null && !newFilm.getGenres().isEmpty()) {
             Set<Integer> genreIds = newFilm.getGenres().stream()
                     .map(Genre::getId)
                     .collect(Collectors.toSet());
-
-            genreStorage.deleteFilmGenres(newFilm.getId());
             genreStorage.addFilmGenres(newFilm.getId(), genreIds);
-        } else if (newFilm.getGenres() != null) {
-            genreStorage.deleteFilmGenres(newFilm.getId());
         }
 
+        directorStorage.deleteFilmDirectors(newFilm.getId());
         if (newFilm.getDirectors() != null && !newFilm.getDirectors().isEmpty()) {
             Set<Integer> directorIds = newFilm.getDirectors().stream()
                     .map(Director::getId)
@@ -243,6 +241,10 @@ public class FilmDbStorage extends DbStorage<Film> implements FilmStorage {
         Collection<Film> films = FilmSortBy.LIKES.equals(sortBy)
                 ? findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY, directorId)
                 : findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY, directorId);
+
+        if (films.isEmpty()) {
+            throw new NotFoundException("Фильмы режиссёра с id " + directorId + " не найдены");
+        }
 
         return filmEnricher.enrichFilms(films);
     }

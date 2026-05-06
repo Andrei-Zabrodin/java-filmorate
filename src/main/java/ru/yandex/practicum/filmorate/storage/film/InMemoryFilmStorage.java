@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmSearchBy;
 import ru.yandex.practicum.filmorate.model.FilmSortBy;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -76,6 +78,16 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film addFilm(Film film) {
         film.setId(++currentId);
+        if (film.getGenres() != null) {
+            film.setGenres(film.getGenres().stream()
+                    .sorted(Comparator.comparingInt(Genre::getId))
+                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+        }
+        if (film.getDirectors() != null) {
+            film.setDirectors(film.getDirectors().stream()
+                    .sorted(Comparator.comparingInt(Director::getId))
+                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+        }
         films.put(film.getId(), film);
         log.debug("Добавлен фильм с id {}", film.getId());
         return film;
@@ -93,11 +105,23 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (newFilm.getDuration() != null) {
             oldFilm.setDuration(newFilm.getDuration());
         }
-        if (newFilm.getGenres() != null && !newFilm.getGenres().isEmpty()) {
-            oldFilm.setGenres(newFilm.getGenres());
+        if (newFilm.getGenres() != null) {
+            if (!newFilm.getGenres().isEmpty()) {
+                oldFilm.setGenres(newFilm.getGenres());
+            } else {
+                oldFilm.setGenres(new HashSet<>());
+            }
+        } else {
+            oldFilm.setGenres(new HashSet<>());
         }
-        if (newFilm.getDirectors() != null && !newFilm.getDirectors().isEmpty()) {
-            oldFilm.setDirectors(newFilm.getDirectors());
+        if (newFilm.getDirectors() != null) {
+            if (!newFilm.getDirectors().isEmpty()) {
+                oldFilm.setDirectors(newFilm.getDirectors());
+            } else {
+                oldFilm.setDirectors(new HashSet<>());
+            }
+        } else {
+            oldFilm.setDirectors(new HashSet<>());
         }
 
         log.debug("Фильм с id {} обновлен", newFilm.getId());
@@ -127,12 +151,19 @@ public class InMemoryFilmStorage implements FilmStorage {
                         && film.getDirectors().stream().anyMatch(director -> director.getId() == directorId))
                 .sorted(getComparator(sortBy))
                 .collect(Collectors.toList());
+
+        if (result.isEmpty()) {
+            throw new NotFoundException("Фильмы режиссёра с id " + directorId + " не найдены");
+        }
+
         return result;
     }
 
     private Comparator<Film> getComparator(FilmSortBy sortBy) {
         if (FilmSortBy.LIKES.equals(sortBy)) {
-            return Comparator.comparingInt(Film::getLikesAmount).reversed();
+            return Comparator.comparingInt(Film::getLikesAmount)
+                    .reversed()
+                    .thenComparing(Film::getReleaseDate, Comparator.reverseOrder());
         }
         return Comparator.comparing(Film::getReleaseDate);
     }

@@ -21,6 +21,7 @@ public class DirectorDbStorage extends DbStorage<Director> implements DirectorSt
     private static final String GET_DIRECTORS_BASE_QUERY = "SELECT fd.film_id, d.director_id, d.name FROM films_directors fd " +
             "JOIN directors d USING(director_id)";
     private static final String ADD_FILM_DIRECTORS_QUERY = "INSERT INTO films_directors (film_id, director_id) VALUES (?, ?)";
+    private static final String DELETE_FILM_DIRECTORS_QUERY = "DELETE FROM films_directors WHERE film_id = ?";
     private static final String ADD_DIRECTOR_QUERY = "INSERT INTO directors(name) VALUES (?)";
     private static final String UPDATE_DIRECTOR_QUERY = "UPDATE directors SET name = ? WHERE director_id = ?";
     private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM directors WHERE director_id = ?";
@@ -104,5 +105,10 @@ public class DirectorDbStorage extends DbStorage<Director> implements DirectorSt
         batchUpdate(ADD_FILM_DIRECTORS_QUERY, batch);
 
         log.debug("Добавили к фильму с id {} количество режиссёров: {}", filmId, directorIds.size());
+    }
+
+    @Override
+    public void deleteFilmDirectors(int filmId) {
+        delete(DELETE_FILM_DIRECTORS_QUERY, filmId);
     }
 }

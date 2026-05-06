@@ -12,7 +12,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 @Component
@@ -32,15 +34,27 @@ public class FilmEnricherImpl implements FilmEnricher {
         Map<Integer, Set<Director>> directorsMap = directorStorage.getDirectorsForAllFilms(filmIds);
 
         return films.stream()
-                .peek(film -> film.setGenres(genresMap.getOrDefault(film.getId(), new HashSet<>())))
-                .peek(film -> film.setDirectors(directorsMap.getOrDefault(film.getId(), new HashSet<>())))
+                .peek(film -> film.setGenres(sortedGenres(genresMap.getOrDefault(film.getId(), new HashSet<>()))))
+                .peek(film -> film.setDirectors(sortedDirectors(directorsMap.getOrDefault(film.getId(), new HashSet<>()))))
                 .toList();
     }
 
     @Override
     public Film enrichFilm(Film film) {
-        film.setGenres(genreStorage.getGenresForOneFilm(film.getId()));
-        film.setDirectors(directorStorage.getDirectorsForOneFilm(film.getId()));
+        film.setGenres(sortedGenres(genreStorage.getGenresForOneFilm(film.getId())));
+        film.setDirectors(sortedDirectors(directorStorage.getDirectorsForOneFilm(film.getId())));
         return film;
+    }
+
+    private Set<Genre> sortedGenres(Set<Genre> genres) {
+        return genres.stream()
+                .sorted(Comparator.comparingInt(Genre::getId))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private Set<Director> sortedDirectors(Set<Director> directors) {
+        return directors.stream()
+                .sorted(Comparator.comparingInt(Director::getId))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
