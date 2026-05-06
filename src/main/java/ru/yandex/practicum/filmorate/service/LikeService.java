@@ -20,10 +20,8 @@ public class LikeService {
     private final EventStorage eventStorage;
 
     public void likeFilm(int filmId, int userId) {
-        boolean added = likeStorage.likeFilm(filmId, userId);
-        if (added) {
-            eventStorage.addEvent(userId, EventType.LIKE, OperationType.ADD, filmId);
-        }
+        likeStorage.likeFilm(filmId, userId);
+        eventStorage.addEvent(userId, EventType.LIKE, OperationType.ADD, filmId);
     }
 
     public void deleteLike(int filmId, int userId) {
