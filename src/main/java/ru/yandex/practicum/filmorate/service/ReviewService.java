@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.Review;
@@ -12,6 +13,8 @@ import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+
+import java.time.Instant;
 import java.util.Collection;
 
 @Slf4j
@@ -41,7 +44,15 @@ public class ReviewService {
 
         log.debug("Создаём отзыв для фильма {} от пользователя {}", review.getFilmId(), review.getUserId());
         Review result = reviewStorage.addReview(review);
-        eventStorage.addEvent(review.getUserId(), EventType.REVIEW, OperationType.ADD, review.getReviewId());
+
+        Event event = Event.builder()
+                .userId(result.getUserId())
+                .timestamp(Instant.now().toEpochMilli())
+                .eventType(EventType.REVIEW)
+                .operation(OperationType.ADD)
+                .entityId(result.getReviewId())
+                .build();
+        eventStorage.addEvent(event);
         return result;
     }
 
@@ -52,15 +63,31 @@ public class ReviewService {
         }
         log.debug("Обновляем отзыв с id {}", review.getReviewId());
         Review result = reviewStorage.updateReview(review);
-        eventStorage.addEvent(result.getUserId(), EventType.REVIEW, OperationType.UPDATE, result.getReviewId());
+
+        Event event = Event.builder()
+                .userId(result.getUserId())
+                .timestamp(Instant.now().toEpochMilli())
+                .eventType(EventType.REVIEW)
+                .operation(OperationType.UPDATE)
+                .entityId(result.getReviewId())
+                .build();
+        eventStorage.addEvent(event);
         return result;
     }
 
     public void deleteReview(int reviewId) {
         log.debug("Удаляем отзыв с id {}", reviewId);
-        Review review = getReviewById(reviewId);
+        Review result = getReviewById(reviewId);
         reviewStorage.deleteReview(reviewId);
-        eventStorage.addEvent(review.getUserId(), EventType.REVIEW, OperationType.REMOVE, reviewId);
+
+        Event event = Event.builder()
+                .userId(result.getUserId())
+                .timestamp(Instant.now().toEpochMilli())
+                .eventType(EventType.REVIEW)
+                .operation(OperationType.REMOVE)
+                .entityId(reviewId)
+                .build();
+        eventStorage.addEvent(event);
     }
 
     public Review getReviewById(int reviewId) {

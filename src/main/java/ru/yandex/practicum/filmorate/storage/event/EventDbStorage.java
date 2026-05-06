@@ -7,8 +7,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DatabaseException;
 import ru.yandex.practicum.filmorate.model.Event;
-import ru.yandex.practicum.filmorate.model.EventType;
-import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.storage.DbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -39,12 +37,12 @@ public class EventDbStorage extends DbStorage<Event> implements EventStorage {
     }
 
     @Override
-    public void addEvent(int userId, EventType eventType, OperationType operation, int entityId) {
+    public void addEvent(Event event) {
         log.debug("Добавляем событие {} {} сущности с id {} от пользователя с id {}",
-                operation, eventType, entityId, userId);
+                event.getOperation(), event.getEventType(), event.getEntityId(), event.getUserId());
 
-        int id = insert(ADD_USER_EVENT_QUERY, Instant.now(), userId, eventType.toString(),
-                operation.toString(), entityId)
+        int id = insert(ADD_USER_EVENT_QUERY, Instant.ofEpochMilli(event.getTimestamp()), event.getUserId(), event.getEventType().toString(),
+                event.getOperation().toString(), event.getEntityId())
                 .orElseThrow(() -> new DatabaseException("Не удалось добавить данные"));
 
         log.debug("Добавлено событие с id {}", id);
