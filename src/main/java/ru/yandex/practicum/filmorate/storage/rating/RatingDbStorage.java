@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.rating;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Rating;
+import ru.yandex.practicum.filmorate.storage.DbStorage;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -13,13 +14,14 @@ import java.util.Optional;
 @Repository
 @Slf4j
 public class RatingDbStorage extends DbStorage<Rating> implements RatingStorage {
-    private static final String GET_RATINGS_QUERY = "SELECT * FROM ratings";
+    private static final String GET_RATINGS_QUERY = "SELECT * FROM ratings ORDER BY rating_id";
     private static final String GET_RATING_BY_ID_QUERY = "SELECT * FROM ratings WHERE rating_id = ?";
 
     public RatingDbStorage(JdbcTemplate jdbc, RowMapper<Rating> mapper) {
         super(jdbc, mapper);
     }
 
+    // Добавлена сортировка
     @Override
     public Collection<Rating> getRatings() {
         return findMany(GET_RATINGS_QUERY);

@@ -16,21 +16,10 @@ import ru.yandex.practicum.filmorate.model.ErrorResponse;
 @RestControllerAdvice
 public class ErrorHandler {
 
-    @ExceptionHandler
+    @ExceptionHandler({ValidateException.class, MethodArgumentNotValidException.class,
+            HttpMessageNotReadableException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handle(final ValidateException e) {
-        return new ErrorResponse("Ошибка валидации", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handle(final MethodArgumentNotValidException e) {
-        return new ErrorResponse("Ошибка валидации", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handle(final HttpMessageNotReadableException e) {
+    public ErrorResponse handle(final Exception e) {
         return new ErrorResponse("Ошибка валидации", e.getMessage());
     }
 
@@ -52,6 +41,6 @@ public class ErrorHandler {
     public ErrorResponse handleOthers(Throwable e) {
         log.debug(e.getMessage());
         log.debug(e.getClass().toString());
-        return new ErrorResponse("Ошибка","Произошла непредвиденная ошибка.");
+        return new ErrorResponse("Ошибка", "Произошла непредвиденная ошибка.");
     }
 }

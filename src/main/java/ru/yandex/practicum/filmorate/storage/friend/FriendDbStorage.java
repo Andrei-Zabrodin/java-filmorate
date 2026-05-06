@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.friend;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.DbStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 
@@ -29,15 +31,15 @@ public class FriendDbStorage extends DbStorage<User> implements FriendsStorage {
 
     @Override
     public Collection<User> getFriends(int userId) {
-        checkUserId(userId);
+        userStorage.checkUserExistence(userId);
 
         return findMany(GET_ALL_FRIENDS_QUERY, userId);
     }
 
     @Override
     public Collection<User> getCommonFriends(int userId, int otherId) {
-        checkUserId(userId);
-        checkUserId(otherId);
+        userStorage.checkUserExistence(userId);
+        userStorage.checkUserExistence(otherId);
 
         return findMany(GET_COMMON_FRIENDS_QUERY, userId, otherId);
     }
@@ -52,12 +54,8 @@ public class FriendDbStorage extends DbStorage<User> implements FriendsStorage {
 
     @Override
     public void deleteFriend(int userId, int friendId) {
-        checkUserId(userId);
-        checkUserId(friendId);
+        userStorage.checkUserExistence(userId);
+        userStorage.checkUserExistence(friendId);
         delete(DELETE_FRIEND_QUERY, userId, friendId);
-    }
-
-    private void checkUserId(int userId) {
-        userStorage.getUserById(userId);
     }
 }

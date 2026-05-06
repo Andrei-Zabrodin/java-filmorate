@@ -27,3 +27,8 @@ MERGE INTO ratings (name) KEY (name) VALUES
     ('PG-13'),
     ('R'),
     ('NC-17');
+
+MERGE INTO directors (name) KEY (name) VALUES
+    ('Акира Куросава'),
+    ('Кристофер Нолан'),
+    ('Ридли Скотт');

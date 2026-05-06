@@ -38,9 +38,10 @@ public class FilmControllerTest {
                 "\"releaseDate\":\"1950-04-28\"," +
                 "\"duration\":88," +
                 "\"genres\":[]," +
+                "\"directors\":[]," +
                 "\"mpa\":{" +
                     "\"id\":2," +
-                    "\"name\":null}" +
+                    "\"name\":\"PG\"}" +
                 "}";
 
         String response = mvc.perform(post(PATH)

@@ -12,7 +12,12 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.*;
+import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.friend.FriendDbStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.like.LikeDbStorage;
+import ru.yandex.practicum.filmorate.storage.rating.RatingDbStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -496,7 +501,7 @@ class FilmorateApplicationTests {
         likeStorage.likeFilm(3, 2);
 
         //В топ2 должны быть фильм 1 и 3
-        Collection<Film> foundFilms = likeStorage.getPopularFilms(2);
+        Collection<Film> foundFilms = likeStorage.getPopularFilms(2, null, null);
 
         assertThat(foundFilms).extracting(Film::getName)
                 .containsExactlyInAnyOrder("film1", "film3");

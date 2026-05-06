@@ -13,5 +13,4 @@ public class FilmorateApplication {
 		SpringApplication.run(FilmorateApplication.class, args);
         log.info("Сервер успешно запущен");
 	}
-
 }
